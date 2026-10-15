@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Secrets: never commit real credentials
+.env
+!.env.example
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+
+# dbt build output
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# Airflow runtime files
+airflow/logs/
+
+# Downloaded datasets (too large for Git)
+data/
+
+# Power BI local files (PBIP)
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# Editor and OS files
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
