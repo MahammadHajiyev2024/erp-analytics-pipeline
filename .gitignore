@@ -31,3 +31,7 @@ data/
 !.vscode/extensions.json
 .DS_Store
 Thumbs.db
+
+# Claude Code (kept local)
+.claude/
+CLAUDE.md
