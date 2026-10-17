@@ -6,9 +6,9 @@ End-to-end analytics pipeline: ERPNext REST API → Airflow → Databricks medal
 
 ## Overview
 
-This project simulates the data platform of a fictional UK-based online giftware wholesaler,
-modeled on a real UK online retailer whose anonymized transactions (the UCI Online Retail II
-dataset) form the company's sales history.
+This project simulates the data platform of Maple Home & Gift Ltd, a fictional UK-based
+online wholesaler of home décor and giftware, modeled on a real UK online retailer whose
+anonymized transactions (the UCI Online Retail II dataset) form the company's sales history.
 Business data lives in an ERP system (ERPNext), and a custom ELT pipeline extracts it through
 the ERPNext REST API, loads it into a Databricks lakehouse, transforms it through bronze,
 silver, and gold layers with dbt, and serves it to Power BI dashboards. ERPNext and Airflow
@@ -18,7 +18,21 @@ The company keeps its books in British pounds (GBP), matching the source data, w
 management reporting is in US dollars (USD), converted with daily exchange rates from FRED,
 as multinational companies do.
 
-*Business case and key questions: coming soon.*
+## Business case
+
+**Maple Home & Gift Ltd** is a UK-based online wholesaler of home décor and giftware, selling
+everything from candle holders and kitchenware to Christmas decorations and party goods. It has
+no physical shops: customers order online, and most are small retailers and gift shops buying in
+bulk to resell, alongside a smaller number of individual buyers. The company serves over 5,900
+customers in 43 countries, most of them in the United Kingdom and the rest of Europe. Its busiest
+season is autumn, with sales peaking every November ahead of Christmas. Maple keeps its books in
+British pounds and reports its performance in US dollars to its US-based parent company.
+
+*Maple Home & Gift is fictional. Its sales history comes from the real, anonymized transactions
+of a UK online retailer (the UCI Online Retail II dataset), with dates shifted forward. Its costs,
+its parent company, and all activity after the historical period are simulated.*
+
+*Stakeholders and key questions: coming soon.*
 
 ## Architecture
 
