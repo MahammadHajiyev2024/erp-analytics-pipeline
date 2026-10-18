@@ -51,27 +51,32 @@ The design follows **Separation of Concerns**: each layer and component has a si
 *Diagram coming soon.*
 
 ```mermaid
-flowchart LR
-    boot["Bootstrap<br/>(one-time)"] -->|"REST API (write)"| erp
-    sim["Simulator<br/>(daily)"] -->|"REST API (write)"| erp
+flowchart TB
+    boot["Bootstrap<br/>(One-Time)"]
+    sim["Simulator<br/>(Daily)"]
 
     subgraph sources["Sources"]
         erp["ERPNext<br/>(Docker)"]
-        fred["FRED API<br/>(exchange rates)"]
+        fred["FRED API<br/>(Exchange Rates)"]
     end
 
-    subgraph ingest["Ingestion, orchestrated by Airflow (Docker)"]
-        ext["Python extractors<br/>and loaders"]
+    subgraph ingest["Ingestion, Orchestrated by Airflow (Docker)"]
+        ext["Python Extractors<br/>and Loaders"]
     end
 
-    subgraph lake["Databricks lakehouse"]
-        bronze["Bronze<br/>raw"] -->|dbt| silver["Silver<br/>cleaned"] -->|dbt| gold["Gold<br/>star schema"]
+    subgraph lake["Databricks Lakehouse"]
+        direction LR
+        bronze["Bronze<br/>Raw Data"] -->|dbt| silver["Silver<br/>Cleaned Data"] -->|dbt| gold["Gold<br/>Star Schema"]
     end
 
-    erp -->|"REST API (read)"| ext
+    pbi["Power BI<br/>Semantic Model and Dashboards"]
+
+    boot -->|"REST API (Write)"| erp
+    sim -->|"REST API (Write)"| erp
+    erp -->|"REST API (Read)"| ext
     fred --> ext
-    ext --> bronze
-    gold --> pbi["Power BI<br/>semantic model and dashboards"]
+    ext --> lake
+    lake --> pbi
 
     classDef bronzeStyle fill:#cd7f32,color:#fff
     classDef silverStyle fill:#c0c0c0,color:#000
