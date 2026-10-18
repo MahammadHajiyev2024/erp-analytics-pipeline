@@ -50,43 +50,7 @@ The design follows **Separation of Concerns**: each layer and component has a si
 
 *Diagram coming soon.*
 
-```mermaid
-flowchart TB
-    boot["Bootstrap<br/>(One-Time)"]
-    sim["Simulator<br/>(Daily)"]
-
-    subgraph sources["Sources"]
-        erp["ERPNext<br/>(Docker)"]
-        fred["FRED API<br/>(Exchange Rates)"]
-    end
-
-    subgraph ingest["Ingestion, Orchestrated by Airflow (Docker)"]
-        ext["Python Extractors<br/>and Loaders"]
-    end
-
-    subgraph lake["Databricks Lakehouse"]
-        direction LR
-        bronze["Bronze<br/>Raw Data"] -->|dbt| silver["Silver<br/>Cleaned Data"] -->|dbt| gold["Gold<br/>Star Schema"]
-    end
-
-    pbi["Power BI<br/>Semantic Model and Dashboards"]
-
-    boot -->|"REST API (Write)"| erp
-    sim -->|"REST API (Write)"| erp
-    erp -->|"REST API (Read)"| ext
-    fred --> ext
-    ext --> lake
-    lake --> pbi
-
-    classDef bronzeStyle fill:#cd7f32,color:#fff
-    classDef silverStyle fill:#c0c0c0,color:#000
-    classDef goldStyle fill:#d4af37,color:#000
-    class bronze bronzeStyle
-    class silver silverStyle
-    class gold goldStyle
-```
-
-All code is checked by GitHub Actions on every push.
+![Architecture of the ERP analytics pipeline](docs/architecture.drawio.svg)
 
 
 
