@@ -1,0 +1,91 @@
+# Design decisions
+
+Key decisions behind this project, with the reasoning and the main alternative considered.
+
+## 1. ERPNext as the source system
+
+**Decision:** Use a self-hosted ERPNext instance, seeded with real retail data, as the source.
+**Why:** Pulling from a real ERP's REST API exercises authentication, pagination, linked
+records, and document states, as in real BI work, where ERP data is the most common source.
+**Alternative:** Loading the dataset directly into the lakehouse, which would remove the
+API extraction entirely.
+
+## 2. ELT instead of ETL
+
+**Decision:** Load raw data first, then transform it inside the lakehouse.
+**Why:** Raw data is always preserved, so transformations can be fixed and rebuilt without
+re-extracting; the lakehouse does the heavy processing.
+**Alternative:** Transforming in Python before loading (ETL), which loses the raw record.
+
+## 3. Medallion architecture on Databricks
+
+**Decision:** Organize the lakehouse into bronze (raw), silver (cleaned), and gold
+(business-ready) layers on Databricks Free Edition.
+**Why:** Clear responsibilities per layer, a widely used industry pattern, and a cloud
+platform at no cost.
+**Alternative:** A self-built PostgreSQL warehouse, which is simpler but not cloud-based
+and not a lakehouse.
+
+## 4. Custom Python extraction
+
+**Decision:** Write the extractors and loaders in Python.
+**Why:** Full control over pagination, incremental loading, retries, and error handling,
+and these are the skills the project aims to demonstrate.
+**Alternative:** A managed connector tool such as Airbyte, which hides that logic.
+
+## 5. dbt for transformations
+
+**Decision:** Build silver and gold models with dbt.
+**Why:** SQL transformations that are version-controlled, tested, and documented, with
+automatic lineage.
+**Alternative:** PySpark notebooks, which are harder to test and review.
+
+## 6. Airflow for orchestration, in Docker
+
+**Decision:** Run the daily pipeline with Apache Airflow, in Docker containers.
+**Why:** Scheduling, dependencies, retries, and alerting, in the most widely used
+open-source orchestrator, reproducible with Docker Compose.
+**Alternative:** Scheduled scripts, which offer no retries, dependencies, or monitoring.
+
+## 7. Least-privilege API access
+
+**Decision:** The pipeline authenticates as a dedicated, read-only ERPNext integration user.
+**Why:** A leaked key cannot change or delete data.
+**Alternative:** Using an administrator account, which is simpler but risky.
+
+## 8. Incremental extraction
+
+**Decision:** Extract only records changed since the last run, using ERPNext's `modified`
+timestamp as a watermark.
+**Why:** Daily runs stay fast as data grows.
+**Alternative:** Full reloads every run, which become slower every day.
+
+## 9. Revenue excludes tax
+
+**Decision:** Revenue is based on net amounts (`net_amount`, `net_total`), never on totals
+including VAT.
+**Why:** Tax is collected for the government and is not the company's income.
+**Alternative:** Using invoice grand totals, which would overstate revenue.
+
+## 10. Books in GBP, reporting in USD
+
+**Decision:** The company records transactions in GBP; the gold layer converts to USD using
+daily FRED exchange rates.
+**Why:** Matches the source data exactly, and mirrors how multinational companies report
+to a parent company.
+**Alternative:** Converting prices to USD when loading, which distorts the original data.
+
+## 11. Staged historical load
+
+**Decision:** The bootstrap loads November 2011 first, then the full dataset once the
+pipeline is proven.
+**Why:** A fast first build on a 16 GB laptop, then real history for year-over-year and
+seasonal analysis.
+**Alternative:** Loading everything up front, which delays the first working pipeline.
+
+## 12. Power BI semantic model as the analytical layer
+
+**Decision:** Use a Power BI semantic model (a tabular model) on the gold star schema.
+**Why:** It provides fast slicing, drilling, and reusable measures, the modern successor
+to OLAP cubes.
+**Alternative:** A separate multidimensional OLAP cube, a largely legacy technology.

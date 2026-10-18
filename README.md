@@ -51,6 +51,8 @@ Detailed questions, KPI definitions, assumptions, scope, and constraints are in
 
 The reasoning behind each choice is in [design decisions](docs/design-decisions.md).
 
+Naming rules for tables, columns, and code are in [conventions](docs/conventions.md).
+
 ## Project structure
 
 ```
