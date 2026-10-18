@@ -39,6 +39,30 @@ levels, or payments. Item costs and categories are derived by stated rules, cust
 segmented into Wholesale and Retail by order size, and stock and payments are simulated. Every
 KPI that depends on an assumption is labeled as such.
 
+## Objectives
+
+**Data engineering:** build an automated ELT pipeline that extracts ERP data through a REST API,
+loads it into a Databricks lakehouse, and transforms it through bronze, silver, and gold layers
+into a tested, documented star schema.
+
+**Business intelligence:** deliver Power BI dashboards that answer the key questions of four
+stakeholders, using clearly defined KPIs reported in GBP and USD.
+
+## Data engineering specifications
+
+- **Data sources:** extract from ERPNext through its REST API, plus daily exchange rates from FRED.
+- **Incremental loading:** each run extracts only records created or changed since the last run.
+- **Data quality:** resolve data quality issues in the silver layer (duplicates, cancellations,
+  non-product codes, missing customers), enforced by automated tests at each layer.
+- **Integration:** combine ERP transactions and exchange rates into a single star schema designed
+  for analysis.
+- **History:** keep raw data unchanged in bronze, and track changes to key customer and product
+  attributes over time in gold.
+- **Automation:** run the full pipeline daily, with retries and failure alerts.
+- **Security:** read-only API access, with no credentials stored in the repository.
+- **Documentation:** document the data model, KPI definitions, and design decisions for both
+  business users and engineers.
+
 ## Scope and constraints
 
 | Area | Decision |
