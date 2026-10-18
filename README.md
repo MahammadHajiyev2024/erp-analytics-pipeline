@@ -46,8 +46,45 @@ Detailed questions, KPI definitions, assumptions, scope, and constraints are in
 
 ## Architecture
 
+The design follows **Separation of Concerns**: each layer and component has a single responsibility.
 
 *Diagram coming soon.*
+
+```mermaid
+flowchart LR
+    boot["Bootstrap<br/>(one-time)"] -->|"REST API (write)"| erp
+    sim["Simulator<br/>(daily)"] -->|"REST API (write)"| erp
+
+    subgraph sources["Sources"]
+        erp["ERPNext<br/>(Docker)"]
+        fred["FRED API<br/>(exchange rates)"]
+    end
+
+    subgraph ingest["Ingestion, orchestrated by Airflow (Docker)"]
+        ext["Python extractors<br/>and loaders"]
+    end
+
+    subgraph lake["Databricks lakehouse"]
+        bronze["Bronze<br/>raw"] -->|dbt| silver["Silver<br/>cleaned"] -->|dbt| gold["Gold<br/>star schema"]
+    end
+
+    erp -->|"REST API (read)"| ext
+    fred --> ext
+    ext --> bronze
+    gold --> pbi["Power BI<br/>semantic model and dashboards"]
+
+    classDef bronzeStyle fill:#cd7f32,color:#fff
+    classDef silverStyle fill:#c0c0c0,color:#000
+    classDef goldStyle fill:#d4af37,color:#000
+    class bronze bronzeStyle
+    class silver silverStyle
+    class gold goldStyle
+```
+
+All code is checked by GitHub Actions on every push.
+
+
+
 
 The reasoning behind each choice is in [design decisions](docs/design-decisions.md).
 
