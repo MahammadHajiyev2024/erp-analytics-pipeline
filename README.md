@@ -18,21 +18,21 @@ The company keeps its books in British pounds (GBP), matching the source data, w
 management reporting is in US dollars (USD), converted with daily exchange rates from FRED,
 as multinational companies do.
 
-## Business case
+## Business Case
 
 **Maple Home & Gift Ltd** is a UK-based online wholesaler of home décor and giftware, selling
 everything from candle holders and kitchenware to Christmas decorations and party goods. It has
 no physical shops: customers order online, and most are small retailers and gift shops buying in
 bulk to resell, alongside a smaller number of individual buyers. The company serves over 5,900
 customers in 43 countries, most of them in the United Kingdom and the rest of Europe. Its busiest
-season is autumn, with sales peaking every November ahead of Christmas. Maple keeps its books in
+season is fall, with sales peaking every November ahead of Christmas. Maple keeps its books in
 British pounds and reports its performance in US dollars to its US-based parent company.
 
 *Maple Home & Gift is fictional. Its sales history comes from the real, anonymized transactions
 of a UK online retailer (the UCI Online Retail II dataset), with dates shifted forward. Its costs,
-its parent company, and all activity after the historical period are simulated.*
+its parent company, and all activity after the historical period are simulated*.
 
-## Stakeholders, KPIs, and scope
+## Stakeholders, KPIs, and Scope
 
 The dashboards serve four stakeholders: the Managing Director, Sales Manager, Inventory Manager,
 and Finance Manager. Key KPIs include net revenue (in GBP and USD), gross margin, year-over-year
@@ -59,7 +59,9 @@ The reasoning behind each choice is in [design decisions](docs/design-decisions.
 
 Naming rules for tables, columns, and code are in [conventions](docs/conventions.md).
 
-## Project structure
+The star schema, with the grain of each table, is in [data model](docs/data-model.md).
+
+## Project Structure
 
 ```
 bootstrap/    One-time load of historical data into ERPNext
@@ -70,7 +72,7 @@ tests/        Unit tests for the Python code
 docs/         Architecture and design decisions
 ```
 
-## Getting started
+## Getting Started
 
 Requirements: [Git](https://git-scm.com/), [uv](https://docs.astral.sh/uv/), and, from Phase 4
 onward, [Docker Desktop](https://www.docker.com/products/docker-desktop/).
@@ -98,7 +100,7 @@ cp .env.example .env   # then fill in your own values (on Windows: Copy-Item .en
 - [ ] Phase 11: Power BI reporting
 - [ ] Phase 12: Documentation and demo
 
-## Data sources
+## Data Sources
 
 - Historical sales data: [UCI Online Retail II](https://archive.ics.uci.edu/dataset/502/online+retail+ii) (CC BY 4.0)
 - Exchange rates (GBP to USD): [FRED](https://fred.stlouisfed.org/), Federal Reserve Bank of St. Louis
