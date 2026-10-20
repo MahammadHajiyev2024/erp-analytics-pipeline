@@ -1,8 +1,10 @@
 # ERP Analytics Pipeline
 
+[![CI](https://github.com/MahammadHajiyev2024/erp-analytics-pipeline/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/MahammadHajiyev2024/erp-analytics-pipeline/actions/workflows/ci.yml)
+
 End-to-end analytics pipeline: ERPNext REST API → Airflow → Databricks medallion lakehouse → dbt → Power BI.
 
-> **Status:** Work in progress. Requirements and environment setup are complete; currently in Phase 1 (Architecture and Design).
+> **Status:** Work in progress. Requirements, architecture, environment setup, and continuous integration are complete; next is Phase 4 (Source System).
 
 ## Overview
 
@@ -51,9 +53,6 @@ The design follows **Separation of Concerns**: each layer and component has a si
 *Diagram coming soon.*
 
 ![Architecture of the ERP analytics pipeline](docs/architecture.drawio.svg)
-
-
-
 
 The reasoning behind each choice is in [design decisions](docs/design-decisions.md).
 
