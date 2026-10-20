@@ -52,9 +52,6 @@ The design follows **Separation of Concerns**: each layer and component has a si
 
 ![Architecture of the ERP analytics pipeline](docs/architecture.drawio.svg)
 
-
-
-
 The reasoning behind each choice is in [design decisions](docs/design-decisions.md).
 
 Naming rules for tables, columns, and code are in [conventions](docs/conventions.md).
