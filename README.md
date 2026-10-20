@@ -50,8 +50,6 @@ Detailed questions, KPI definitions, assumptions, scope, and constraints are in
 
 The design follows **Separation of Concerns**: each layer and component has a single responsibility.
 
-*Diagram coming soon.*
-
 ![Architecture of the ERP analytics pipeline](docs/architecture.drawio.svg)
 
 The reasoning behind each choice is in [design decisions](docs/design-decisions.md).
