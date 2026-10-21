@@ -51,6 +51,39 @@ years for the historical data are created by the bootstrap in Phase 5.
 - **Fiscal year:** one fiscal year, 2026, from 01-01-2026 to 31-12-2026.
 - **Customers:** the customer list is empty.
 
+## 4. Create the integration user
+
+The pipeline reads ERPNext as a dedicated, read-only user (see design decision 7).
+
+1. **Role:** in **Role List**, add a role named `Pipeline Reader` with **Desk Access** ticked.
+2. **Permissions:** in **Role Permissions Manager**, add a level 0 rule for `Pipeline Reader`
+   on each document type below, with only **Read** ticked. **Only if Creator** stays unticked.
+
+   | Document type | Used for |
+   |---|---|
+   | Sales Invoice | `fact_sales`, `fact_receivables` |
+   | Purchase Invoice | `fact_purchases` |
+   | Stock Ledger Entry | `fact_stock_movements` |
+   | Customer, Customer Group | `dim_customer` |
+   | Item, Item Group | `dim_product` |
+   | Supplier | `dim_supplier` |
+
+   Child tables such as Sales Invoice Item need no rule of their own; they are readable
+   whenever their parent document is.
+3. **User:** in **User List**, add `pipeline@mhg.local` with first name `Pipeline` and no
+   welcome email. On the **Roles & Permissions** tab, leave **Role Profile** empty and tick
+   only `Pipeline Reader`.
+4. **API key:** on the user's page, click **Generate Keys**. Copy the key and secret into
+   `ERPNEXT_API_KEY` and `ERPNEXT_API_SECRET` in `.env`. The secret is shown only once.
+5. **Check:** run the connection check from the repository root:
+
+   ```bash
+   uv run python -m extractors.erpnext
+   ```
+
+   It must connect as `pipeline@mhg.local`, read Sales Invoice and Customer, and be refused
+   for Journal Entry.
+
 ## Troubleshooting
 
 **`Bind for 0.0.0.0:8080 failed: port is already allocated`.** Another program, or
@@ -62,4 +95,20 @@ container lost its network connection, usually after a failed start. Recreate it
 
 ```bash
 docker compose -f docker/erpnext/compose.yaml --env-file .env up -d --force-recreate frontend
+```
+
+**The connection check fails with `401 UNAUTHORIZED` although `.env` is correct.** An older
+`ERPNEXT_API_KEY` or `ERPNEXT_API_SECRET` is already set in the terminal, and python-dotenv
+never overwrites existing variables. Remove them and run the check again (PowerShell):
+
+```powershell
+Remove-Item env:ERPNEXT_API_KEY, env:ERPNEXT_API_SECRET -ErrorAction SilentlyContinue
+```
+
+**The connection check fails with `403 Insufficient Permission`.** The role is missing from
+the user, or **Read** is not ticked in its rules. Fix that, then clear ERPNext's permission
+cache:
+
+```bash
+docker compose -f docker/erpnext/compose.yaml --env-file .env exec backend bench --site frontend clear-cache
 ```
