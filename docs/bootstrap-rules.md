@@ -42,10 +42,16 @@ raw data were duplicates or non-sales codes), and 228,688 Guest Customer rows.
 
 ## Customers
 
-- **Missing customer ID** (23% of rows): the order belongs to a single **Guest Customer**.
-- **Segments:** a customer is **Wholesale** if their median order value is above a
-  threshold, otherwise **Retail**. The threshold is chosen from the order value
-  distribution when the cleaning code is written. The Guest Customer is always Retail.
+- **Missing customer ID** (22% of clean rows): the order belongs to a single **Guest
+  Customer**, which gets its own segment, **Guest**. Guest orders have a median value of
+  £201, closer to wholesale than retail, so they cannot be classified as either.
+- **Segments:** a customer whose median order value (sales invoices only) is at least
+  **£150** is **Wholesale**, otherwise **Retail**. Order values form a single peak around
+  £150–400 with no natural gap, so the threshold is a judgment: an individual rarely
+  spends £150 on one order, while a shop restocking usually does. It makes 80% of
+  customers Wholesale, matching the business case. Customers with no sales (only
+  cancellations) count as Retail.
+- **Country:** each customer's most frequent invoice country.
 
 ## Products
 
