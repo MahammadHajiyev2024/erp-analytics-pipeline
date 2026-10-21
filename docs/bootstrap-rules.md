@@ -49,6 +49,8 @@ already exists.
 - **Invoices:** each source invoice becomes a Sales Invoice.
 - **Cancellations** (19,494 rows, invoice numbers starting with `C`): become return
   invoices. Discount lines on cancellations become **Discount** lines on the return.
+  ERPNext v16.51.1 accepts these returns without a link to an original invoice (tested
+  manually, including the stock update).
 - **VAT:** 20% for invoices to the United Kingdom and 0% (zero-rated exports) for all other
   countries, decided by each invoice's country rather than the customer's. All goods are
   standard-rated, and 20% applies throughout the history.
@@ -68,7 +70,5 @@ already exists.
 
 ## Still to confirm
 
-- Whether ERPNext accepts return invoices that are not linked to an original invoice
-  (Phase 5 task: check return invoices in ERPNext).
 - The segment threshold, the category keywords, and the cost ratios, set when the
   cleaning code is written.
