@@ -8,11 +8,8 @@ from extractors.erpnext import TIMEOUT_SECONDS, can_read, get_logged_user, get_s
 BASE_URL = "http://erpnext.test"
 
 
-def test_get_session_sends_api_token(monkeypatch):
-    monkeypatch.setenv("ERPNEXT_API_KEY", "key")
-    monkeypatch.setenv("ERPNEXT_API_SECRET", "secret")
-
-    session = get_session()
+def test_get_session_sends_api_token():
+    session = get_session("key", "secret")
 
     assert session.headers["Authorization"] == "token key:secret"
 

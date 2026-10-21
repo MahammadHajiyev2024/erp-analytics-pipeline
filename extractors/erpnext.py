@@ -8,10 +8,8 @@ from dotenv import load_dotenv
 TIMEOUT_SECONDS = 30
 
 
-def get_session() -> requests.Session:
-    """Return a session authenticated with the pipeline's API key and secret."""
-    api_key = os.environ["ERPNEXT_API_KEY"]
-    api_secret = os.environ["ERPNEXT_API_SECRET"]
+def get_session(api_key: str, api_secret: str) -> requests.Session:
+    """Return a session authenticated with an ERPNext API key and secret."""
     session = requests.Session()
     session.headers["Authorization"] = f"token {api_key}:{api_secret}"
     return session
@@ -38,14 +36,19 @@ def can_read(session: requests.Session, base_url: str, doctype: str) -> bool:
 
 
 def main() -> None:
-    """Check the connection to ERPNext and the pipeline user's permissions."""
+    """Check the connection to ERPNext for the pipeline and bootstrap users."""
     load_dotenv()
     base_url = os.environ["ERPNEXT_URL"]
-    session = get_session()
 
-    print(f"Connected to {base_url} as {get_logged_user(session, base_url)}")
+    pipeline = get_session(os.environ["ERPNEXT_API_KEY"], os.environ["ERPNEXT_API_SECRET"])
+    print(f"Pipeline user: {get_logged_user(pipeline, base_url)}")
     for doctype in ["Sales Invoice", "Customer", "Journal Entry"]:
-        print(f"Can read {doctype}: {can_read(session, base_url, doctype)}")
+        print(f"  Can read {doctype}: {can_read(pipeline, base_url, doctype)}")
+
+    bootstrap = get_session(
+        os.environ["ERPNEXT_BOOTSTRAP_API_KEY"], os.environ["ERPNEXT_BOOTSTRAP_API_SECRET"]
+    )
+    print(f"Bootstrap user: {get_logged_user(bootstrap, base_url)}")
 
 
 if __name__ == "__main__":
