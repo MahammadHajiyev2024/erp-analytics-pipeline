@@ -13,14 +13,30 @@ already exists.
 
 ## Cleaning
 
-| Source rows | Treatment |
+| Source rows (counted on the raw data) | Treatment |
 |---|---|
 | 34,335 exact duplicate rows | Removed |
+| Internal codes `M`, `BANK CHARGES`, `TEST001`, `TEST002` | Excluded |
 | 6,207 rows with a zero or negative price | Excluded |
 | About 3,456 negative-quantity rows that are not cancellations | Excluded |
-| Internal codes `M`, `BANK CHARGES`, `TEST001`, `TEST002` | Excluded |
 | 5 discount (`D`) rows on normal invoices | Excluded as data errors |
 | `DCGS` items and gift vouchers | Kept |
+
+The rules run in the order above; each sees only the rows the previous rules kept, so
+rows with several problems count once, under the first rule that removes them. Result on
+the full source (`uv run python -m bootstrap.clean`):
+
+| Step | Rows removed |
+|---|---|
+| Duplicates | 34,335 |
+| Internal codes | 1,504 |
+| Zero or negative prices | 6,009 |
+| Other negative quantities | 0 (all also had a zero price) |
+| Discounts on normal invoices | 5 |
+| **Clean rows** | **1,025,518** |
+
+The clean data has 47,534 invoices, 18,500 cancellation rows (the 994 fewer than in the
+raw data were duplicates or internal codes), and 228,837 Guest Customer rows.
 
 ## Customers
 
