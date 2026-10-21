@@ -9,6 +9,7 @@ from bootstrap.source import load_source
 INTERNAL_CODES = ["M", "BANK CHARGES", "TEST001", "TEST002"]
 DISCOUNT_CODE = "D"
 GUEST_CUSTOMER = "Guest Customer"
+DATE_SHIFT = pd.Timedelta(weeks=730)  # Design decision 14
 
 
 def is_cancellation(df: pd.DataFrame) -> pd.Series:
@@ -47,6 +48,11 @@ def add_customer(df: pd.DataFrame) -> pd.DataFrame:
     return df.assign(customer=customer)
 
 
+def shift_dates(df: pd.DataFrame) -> pd.DataFrame:
+    """Move invoice dates forward by 730 weeks, keeping each order on its weekday."""
+    return df.assign(invoice_date=df["invoice_date"] + DATE_SHIFT)
+
+
 RULES: list[Callable[[pd.DataFrame], pd.DataFrame]] = [
     remove_duplicates,
     exclude_internal_codes,
@@ -57,13 +63,16 @@ RULES: list[Callable[[pd.DataFrame], pd.DataFrame]] = [
 
 
 def clean(df: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
-    """Apply every cleaning rule in order; return the result and rows removed per rule."""
+    """Apply the cleaning rules in order, then add customers and shift dates.
+
+    Returns the result and the number of rows each rule removed.
+    """
     removed = {}
     for rule in RULES:
         before = len(df)
         df = rule(df)
         removed[rule.__name__] = before - len(df)
-    return add_customer(df).reset_index(drop=True), removed
+    return shift_dates(add_customer(df)).reset_index(drop=True), removed
 
 
 def main() -> None:
@@ -79,6 +88,7 @@ def main() -> None:
     print(f"  Cancellation rows: {is_cancellation(cleaned).sum():,}")
     print(f"  Guest Customer rows: {(cleaned['customer'] == GUEST_CUSTOMER).sum():,}")
     print(f"  Invoices: {cleaned['invoice'].nunique():,}")
+    print(f"  Dates: {cleaned['invoice_date'].min()} to {cleaned['invoice_date'].max()}")
 
 
 if __name__ == "__main__":
