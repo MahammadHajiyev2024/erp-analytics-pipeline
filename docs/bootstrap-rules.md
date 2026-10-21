@@ -16,11 +16,13 @@ already exists.
 | Source rows (counted on the raw data) | Treatment |
 |---|---|
 | 34,335 exact duplicate rows | Removed |
-| Internal codes `M`, `BANK CHARGES`, `TEST001`, `TEST002` | Excluded |
-| 6,207 rows with a zero or negative price | Excluded |
+| Non-sales codes: fees (`AMAZONFEE`, `BANK CHARGES`, `CRUK`), adjustments (`ADJUST`, `ADJUST2`, `B`, `M`, in any case), samples (`S`), and tests (`TEST001`, `TEST002`) | Excluded |
+| 6,207 rows with a zero or negative price, plus prices below £0.01 (GBP has two decimals) | Excluded |
 | About 3,456 negative-quantity rows that are not cancellations | Excluded |
 | 5 discount (`D`) rows on normal invoices | Excluded as data errors |
 | `DCGS` items and gift vouchers | Kept |
+
+Stock codes are trimmed of surrounding spaces when the source is loaded.
 
 The rules run in the order above; each sees only the rows the previous rules kept, so
 rows with several problems count once, under the first rule that removes them. Result on
@@ -35,8 +37,8 @@ the full source (`uv run python -m bootstrap.clean`):
 | Discounts on normal invoices | 5 |
 | **Clean rows** | **1,025,518** |
 
-The clean data has 47,534 invoices, 18,500 cancellation rows (the 994 fewer than in the
-raw data were duplicates or internal codes), and 228,837 Guest Customer rows.
+The clean data has 47,374 invoices, 18,322 cancellation rows (the 1,172 fewer than in the
+raw data were duplicates or non-sales codes), and 228,688 Guest Customer rows.
 
 ## Customers
 
