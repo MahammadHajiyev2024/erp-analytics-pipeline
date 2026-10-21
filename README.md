@@ -4,7 +4,7 @@
 
 End-to-end analytics pipeline: ERPNext REST API → Airflow → Databricks medallion lakehouse → dbt → Power BI.
 
-> **Status:** Work in progress. Requirements, architecture, environment setup, and continuous integration are complete; next is Phase 4 (Source System).
+   > **Status:** Work in progress. Phases 0 to 4 are complete: requirements, architecture, environment setup, continuous integration, and the ERPNext source system. Next is Phase 5 (Bootstrap Historical Data).
 
 ## Overview
 
@@ -93,14 +93,16 @@ ERPNext then runs at http://localhost:8080. Log in as `Administrator` with the
 ```bash
 docker compose -f docker/erpnext/compose.yaml --env-file .env stop
 ```
+First-time setup (company, fiscal year, and the pipeline's read-only user)
+is described in [ERPNext setup](docs/erpnext-setup.md).
 
 ## Roadmap
 
 - [x] Phase 0: Requirements analysis
-- [ ] Phase 1: Architecture and design
+- [x] Phase 1: Architecture and design
 - [x] Phase 2: Environment setup
-- [ ] Phase 3: Continuous integration
-- [ ] Phase 4: Source system (ERPNext)
+- [x] Phase 3: Continuous integration
+- [x] Phase 4: Source system (ERPNext)
 - [ ] Phase 5: Bootstrap historical data
 - [ ] Phase 6: Business activity simulator
 - [ ] Phase 7: Databricks lakehouse setup
