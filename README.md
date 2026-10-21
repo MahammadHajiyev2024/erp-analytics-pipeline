@@ -81,6 +81,19 @@ uv sync
 cp .env.example .env   # then fill in your own values (on Windows: Copy-Item .env.example .env)
 ```
 
+To start ERPNext (the first start creates the site, which takes a few minutes):
+
+```bash
+docker compose -f docker/erpnext/compose.yaml --env-file .env up -d
+```
+
+ERPNext then runs at http://localhost:8080. Log in as `Administrator` with the
+`ERPNEXT_ADMIN_PASSWORD` from your `.env`. To stop it:
+
+```bash
+docker compose -f docker/erpnext/compose.yaml --env-file .env stop
+```
+
 ## Roadmap
 
 - [x] Phase 0: Requirements analysis
