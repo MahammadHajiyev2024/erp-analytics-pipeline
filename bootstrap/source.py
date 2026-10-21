@@ -31,9 +31,10 @@ def read_raw(path: Path) -> pd.DataFrame:
     return df
 
 
-def standardize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Rename the source columns to snake_case."""
-    return df.rename(columns=COLUMN_NAMES)
+def standardize(df: pd.DataFrame) -> pd.DataFrame:
+    """Rename the source columns to snake_case and trim spaces around stock codes."""
+    df = df.rename(columns=COLUMN_NAMES)
+    return df.assign(stock_code=df["stock_code"].str.strip())
 
 
 def load_source(raw_path: Path = RAW_PATH, cache_path: Path = CACHE_PATH) -> pd.DataFrame:
@@ -44,7 +45,7 @@ def load_source(raw_path: Path = RAW_PATH, cache_path: Path = CACHE_PATH) -> pd.
         df = read_raw(raw_path)
         cache_path.parent.mkdir(parents=True, exist_ok=True)
         df.to_parquet(cache_path, index=False)
-    return standardize_columns(df)
+    return standardize(df)
 
 
 def main() -> None:

@@ -6,7 +6,20 @@ import pandas as pd
 
 from bootstrap.source import load_source
 
-INTERNAL_CODES = ["M", "BANK CHARGES", "TEST001", "TEST002"]
+# Codes that record fees, adjustments, samples, or tests rather than sales.
+NON_SALES_CODES = [
+    "ADJUST",
+    "ADJUST2",
+    "AMAZONFEE",
+    "B",
+    "BANK CHARGES",
+    "CRUK",
+    "M",
+    "S",
+    "TEST001",
+    "TEST002",
+]
+MIN_PRICE = 0.01  # The smallest amount GBP can represent
 DISCOUNT_CODE = "D"
 GUEST_CUSTOMER = "Guest Customer"
 DATE_SHIFT = pd.Timedelta(weeks=730)  # Design decision 14
@@ -22,14 +35,14 @@ def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
     return df.drop_duplicates()
 
 
-def exclude_internal_codes(df: pd.DataFrame) -> pd.DataFrame:
-    """Exclude manual adjustments, bank charges, and test items."""
-    return df[~df["stock_code"].isin(INTERNAL_CODES)]
+def exclude_non_sales_codes(df: pd.DataFrame) -> pd.DataFrame:
+    """Exclude fees, adjustments, samples, and test items, ignoring upper and lower case."""
+    return df[~df["stock_code"].str.upper().isin(NON_SALES_CODES)]
 
 
 def exclude_invalid_prices(df: pd.DataFrame) -> pd.DataFrame:
-    """Exclude rows with a zero or negative price."""
-    return df[df["price"] > 0]
+    """Exclude rows with a price below one penny, including zero and negative prices."""
+    return df[df["price"] >= MIN_PRICE]
 
 
 def exclude_adjustments(df: pd.DataFrame) -> pd.DataFrame:
@@ -55,7 +68,7 @@ def shift_dates(df: pd.DataFrame) -> pd.DataFrame:
 
 RULES: list[Callable[[pd.DataFrame], pd.DataFrame]] = [
     remove_duplicates,
-    exclude_internal_codes,
+    exclude_non_sales_codes,
     exclude_invalid_prices,
     exclude_adjustments,
     exclude_misplaced_discounts,
