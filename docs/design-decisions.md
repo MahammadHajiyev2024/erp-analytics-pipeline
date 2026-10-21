@@ -97,3 +97,13 @@ to OLAP cubes.
 analysis simple, with no separate fiscal calendar in `dim_date`.
 **Alternative:** An April-to-March fiscal year, common in the UK, which would need fiscal
 period logic in every report.
+
+## 14. Shift dates by 730 weeks
+
+**Decision:** All source dates move forward by exactly 730 weeks (5,110 days), so the
+history runs from 28 November 2023 to 5 December 2025.
+**Why:** A whole number of weeks keeps every order on its original weekday, and 730 weeks
+is three days short of 14 years, so the November peak stays in November. The history
+covers two complete calendar years (2024 and 2025) for year-over-year analysis.
+**Alternative:** Shifting by exactly 14 years, which keeps calendar dates but moves every
+order three weekdays later, creating a weekly pattern the business never had.
