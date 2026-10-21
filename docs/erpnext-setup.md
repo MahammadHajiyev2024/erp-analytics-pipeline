@@ -101,6 +101,20 @@ the Administrator account.
 These standard roles give more than the bootstrap strictly needs, but only business
 permissions: no user management, permission changes, or system settings.
 
+## 6. Create fiscal years and VAT templates
+
+Done once as Administrator, before the bootstrap.
+
+1. **Fiscal years:** in **Fiscal Year List**, add 2023, 2024, and 2025, each from 1 January
+   to 31 December, with Maple Home & Gift Ltd in the **Companies** table. The setup
+   wizard already created 2026. The history starts on 28 November 2023 (design decision
+   14), and ERPNext refuses invoices outside a fiscal year.
+2. **UK VAT:** the setup wizard creates **United Kingdom Tax - MHG** (On Net Total, account
+   **VAT - MHG**, 20%). Use it unchanged for invoices to the United Kingdom.
+3. **Export VAT:** in **Sales Taxes and Charges Template List**, add **Zero-Rated Export**
+   with one row: On Net Total, account **VAT - MHG**, rate 0. Use it for invoices to all
+   other countries. Neither template is the default; the bootstrap always sets one.
+
 ## Troubleshooting
 
 **`Bind for 0.0.0.0:8080 failed: port is already allocated`.** Another program, or

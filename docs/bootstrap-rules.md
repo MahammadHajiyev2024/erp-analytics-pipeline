@@ -53,7 +53,8 @@ already exists.
   manually, including the stock update).
 - **VAT:** 20% for invoices to the United Kingdom and 0% (zero-rated exports) for all other
   countries, decided by each invoice's country rather than the customer's. All goods are
-  standard-rated, and 20% applies throughout the history.
+  standard-rated, and 20% applies throughout the history.   The templates are **United Kingdom Tax - MHG**
+  and **Zero-Rated Export - MHG**.
 - **Prices** are treated as excluding VAT. Revenue KPIs use net amounts; receivables use
   invoice totals including VAT.
 
@@ -67,6 +68,7 @@ already exists.
   supplier's bill and the goods arriving.
 - **Returns** put goods back into stock through the return invoices.
 - **Supplier payments** are out of scope.
+- **Purchase VAT** is out of scope: purchase invoices carry no tax, like supplier payments.
 
 ## Still to confirm
 
