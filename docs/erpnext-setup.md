@@ -84,6 +84,23 @@ The pipeline reads ERPNext as a dedicated, read-only user (see design decision 7
    It must connect as `pipeline@mhg.local`, read Sales Invoice and Customer, and be refused
    for Journal Entry.
 
+## 5. Create the bootstrap user
+
+The bootstrap and the simulator write to ERPNext as a separate user, so scripts never use
+the Administrator account.
+
+1. **User:** in **User List**, add `bootstrap@mhg.local` with first name `Bootstrap` and no
+   welcome email. On the **Roles & Permissions** tab, leave **Role Profile** empty and tick
+   only **Accounts User**, **Stock User**, **Item Manager**, **Sales Master Manager**, and
+   **Purchase Master Manager**. Check the roles again after the first save.
+2. **API key:** on the **Settings** tab, click **Generate Keys**. Copy the key and secret
+   into `ERPNEXT_BOOTSTRAP_API_KEY` and `ERPNEXT_BOOTSTRAP_API_SECRET` in `.env`.
+3. **Check:** `uv run python -m extractors.erpnext` must also print
+   `Bootstrap user: bootstrap@mhg.local`.
+
+These standard roles give more than the bootstrap strictly needs, but only business
+permissions: no user management, permission changes, or system settings.
+
 ## Troubleshooting
 
 **`Bind for 0.0.0.0:8080 failed: port is already allocated`.** Another program, or
