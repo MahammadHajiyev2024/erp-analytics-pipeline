@@ -9,6 +9,7 @@ from bootstrap.clean import (
     exclude_invalid_prices,
     exclude_misplaced_discounts,
     remove_duplicates,
+    shift_dates,
 )
 
 
@@ -83,3 +84,31 @@ def test_clean_reports_rows_removed_per_rule():
     assert removed["remove_duplicates"] == 1
     assert removed["exclude_internal_codes"] == 1
     assert removed["exclude_invalid_prices"] == 1
+
+
+def test_shift_dates_moves_first_and_last_day():
+    df = make_rows(
+        {"invoice_date": pd.Timestamp("2009-12-01 07:45")},
+        {"invoice_date": pd.Timestamp("2011-12-09 12:50")},
+    )
+
+    shifted = shift_dates(df)["invoice_date"].tolist()
+
+    assert shifted == [pd.Timestamp("2023-11-28 07:45"), pd.Timestamp("2025-12-05 12:50")]
+
+
+def test_shift_dates_keeps_weekdays():
+    dates = pd.date_range("2010-01-01", periods=7, freq="D")
+    df = make_rows(*({"invoice_date": date} for date in dates))
+
+    shifted = shift_dates(df)["invoice_date"]
+
+    assert shifted.dt.dayofweek.tolist() == df["invoice_date"].dt.dayofweek.tolist()
+
+
+def test_clean_shifts_dates():
+    df = make_rows({"invoice_date": pd.Timestamp("2010-12-01 08:26")})
+
+    cleaned, _ = clean(df)
+
+    assert cleaned["invoice_date"].iloc[0] == pd.Timestamp("2024-11-27 08:26")
