@@ -1,0 +1,74 @@
+# Bootstrap rules
+
+How the UCI Online Retail II data becomes Maple Home & Gift's history in ERPNext. The
+bootstrap (Phase 5) applies these rules once; the simulator (Phase 6) continues from where
+the history ends. Row counts come from `notebooks/01_explore_online_retail.ipynb`.
+
+## Dates
+
+All source dates move forward by exactly 730 weeks (design decision 14). The history runs
+from Tuesday 28 November 2023 to Friday 5 December 2025, and every order keeps its
+original weekday. Fiscal years 2023, 2024, and 2025 are created before loading; 2026
+already exists.
+
+## Cleaning
+
+| Source rows | Treatment |
+|---|---|
+| 34,335 exact duplicate rows | Removed |
+| 6,207 rows with a zero or negative price | Excluded |
+| About 3,456 negative-quantity rows that are not cancellations | Excluded |
+| Internal codes `M`, `BANK CHARGES`, `TEST001`, `TEST002` | Excluded |
+| 5 discount (`D`) rows on normal invoices | Excluded as data errors |
+| `DCGS` items and gift vouchers | Kept |
+
+## Customers
+
+- **Missing customer ID** (23% of rows): the order belongs to a single **Guest Customer**.
+- **Segments:** a customer is **Wholesale** if their median order value is above a
+  threshold, otherwise **Retail**. The threshold is chosen from the order value
+  distribution when the cleaning code is written. The Guest Customer is always Retail.
+
+## Products
+
+- **Categories:** each product gets one category (an ERPNext Item Group) from keyword
+  rules on its description. Rules are checked in a fixed order and the first match wins,
+  so seasonal categories such as Christmas come first. Unmatched products go to
+  **Other**, which should stay below about 10–15% of products. The keywords live in a
+  file in the repository and are covered by unit tests.
+- **Service items:** shipping codes (`POST`, `DOT`, `C2`) and discounts become non-stock
+  service items named **Shipping** and **Discount**.
+- **Costs:** each stock item has one fixed cost: its median selling price multiplied by
+  its category's cost ratio, plus a small adjustment of up to about ±5 percentage points
+  derived from the stock code. The adjustment is deterministic, so every run produces the
+  same costs. Cost ratios aim at gross margins of roughly 40–50%. Shipping passes through
+  at cost (no margin); discounts have no cost.
+
+## Sales and returns
+
+- **Invoices:** each source invoice becomes a Sales Invoice.
+- **Cancellations** (19,494 rows, invoice numbers starting with `C`): become return
+  invoices. Discount lines on cancellations become **Discount** lines on the return.
+- **VAT:** 20% for invoices to the United Kingdom and 0% (zero-rated exports) for all other
+  countries, decided by each invoice's country rather than the customer's. All goods are
+  standard-rated, and 20% applies throughout the history.
+- **Prices** are treated as excluding VAT. Revenue KPIs use net amounts; receivables use
+  invoice totals including VAT.
+
+## Purchases and stock
+
+- **Suppliers:** about 10 invented suppliers, each supplying one or two categories.
+- **Restocking:** MHG buys each item's sales for the coming month plus a 20% safety buffer,
+  at the item's cost. The first purchase is on the first day of the history (covering the
+  rest of November 2023); after that, purchases happen on the first day of each month.
+  Each purchase is a Purchase Invoice with stock updated, so it records both the
+  supplier's bill and the goods arriving.
+- **Returns** put goods back into stock through the return invoices.
+- **Supplier payments** are out of scope.
+
+## Still to confirm
+
+- Whether ERPNext accepts return invoices that are not linked to an original invoice
+  (Phase 5 task: check return invoices in ERPNext).
+- The segment threshold, the category keywords, and the cost ratios, set when the
+  cleaning code is written.
