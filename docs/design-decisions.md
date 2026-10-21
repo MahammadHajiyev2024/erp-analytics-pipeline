@@ -89,3 +89,11 @@ seasonal analysis.
 **Why:** It provides fast slicing, drilling, and reusable measures, the modern successor
 to OLAP cubes.
 **Alternative:** A separate multidimensional OLAP cube, a largely legacy technology.
+
+## 13. Calendar fiscal year
+
+**Decision:** The company's fiscal year runs from January to December.
+**Why:** It matches the US parent company's reporting year and keeps year-over-year
+analysis simple, with no separate fiscal calendar in `dim_date`.
+**Alternative:** An April-to-March fiscal year, common in the UK, which would need fiscal
+period logic in every report.
