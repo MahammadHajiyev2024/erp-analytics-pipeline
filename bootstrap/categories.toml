@@ -1,0 +1,95 @@
+# Product categories for the bootstrap (see docs/bootstrap-rules.md).
+#
+# Categories are checked in the order below, and the first one with a matching keyword
+# wins, so specific or seasonal categories come before broad ones. A keyword matches a
+# whole word in the product description, ignoring case, with an optional plural "S" or
+# "ES": "MUG" matches "MUG" and "MUGS" but not "SMUG"; "TIN" does not match "TINY".
+#
+# cost_ratio is the share of an item's typical selling price that MHG pays its supplier.
+
+other_cost_ratio = 0.55
+
+[[category]]
+name = "Christmas"
+cost_ratio = 0.50
+keywords = [
+    "CHRISTMAS", "XMAS", "ADVENT", "BAUBLE", "SANTA", "REINDEER", "SNOWFLAKE", "NATIVITY",
+    "SNOWMAN", "ANGEL", "STOCKING", "TREE", "CRACKER",
+]
+
+[[category]]
+name = "Candles & Lighting"
+cost_ratio = 0.55
+keywords = [
+    "CANDLE", "CANDLESTICK", "T-LIGHT", "TEA LIGHT", "LANTERN", "LIGHT", "NIGHTLIGHT", "LAMP",
+    "LED", "INCENSE", "LAMPSHADE",
+]
+
+[[category]]
+name = "Toys & Kids"
+cost_ratio = 0.60
+keywords = [
+    "TOY", "DOLL", "GAME", "PUZZLE", "JIGSAW", "CHILDRENS", "CHILDREN'S", "KIDS", "BABY",
+    "SPACEBOY", "TEDDY", "SKIPPING", "PLAYHOUSE", "CHALK", "DOMINOES", "MARBLES", "KNITTING",
+]
+
+[[category]]
+name = "Party & Gift Wrap"
+cost_ratio = 0.50
+keywords = [
+    "PARTY", "WRAP", "CARD", "BALLOON", "BUNTING", "CONFETTI", "RIBBON", "TISSUE",
+    "BIRTHDAY", "PAPER CHAIN", "CAKE CASES", "STRAWS", "GARLAND", "TAPE",
+]
+
+[[category]]
+name = "Stationery"
+cost_ratio = 0.50
+keywords = [
+    "NOTEBOOK", "PEN", "PENCIL", "STICKER", "JOURNAL", "ERASER", "RUBBER", "DIARY",
+    "CALENDAR", "BOOKMARK", "NOTE", "ENVELOPE", "STATIONERY", "SCRAPBOOK", "PHOTO ALBUM",
+]
+
+[[category]]
+name = "Kitchen & Dining"
+cost_ratio = 0.60
+keywords = [
+    "MUG", "CUP", "PLATE", "BOWL", "TEA", "TEAPOT", "TEACUP", "COFFEE", "CAKE", "CAKESTAND",
+    "LUNCH", "JAM", "BAKING",
+    "KITCHEN", "APRON", "NAPKIN", "TRAY", "CUTLERY", "SPOON", "JUG", "BOTTLE", "COASTER",
+    "PANTRY", "EGG", "BREAD", "CHOPPING", "OVEN", "GLASS", "BEAKER", "BISCUIT", "RECIPE",
+    "TOAST", "MILK", "SUGAR", "CHOCOLATE", "PICNIC", "DOILY", "DOILIES",
+]
+
+[[category]]
+name = "Bags & Storage"
+cost_ratio = 0.55
+keywords = [
+    "BAG", "BOX", "TIN", "BASKET", "CASE", "STORAGE", "PURSE", "HAMPER", "CRATE", "DRAWER",
+    "JAR", "TRUNK", "WASHBAG", "TOTE", "SHOPPER",
+]
+
+[[category]]
+name = "Garden"
+cost_ratio = 0.60
+keywords = [
+    "GARDEN", "PLANT", "FLOWER POT", "WATERING", "BIRD", "SEED", "HERB", "PLANTER", "TRUG",
+    "GROW",
+]
+
+[[category]]
+name = "Accessories"
+cost_ratio = 0.45
+keywords = [
+    "NECKLACE", "BRACELET", "EARRING", "HAIR", "CHARM", "UMBRELLA", "KEYRING", "KEY RING",
+    "BROOCH", "SCARF", "GLOVES", "COLLAR", "PARASOL",
+]
+
+[[category]]
+name = "Home Décor"
+cost_ratio = 0.55
+keywords = [
+    "FRAME", "SIGN", "CLOCK", "CUSHION", "MIRROR", "HOOK", "HANGER", "HANGING", "HEART",
+    "DOORSTOP", "DOOR", "WALL", "ORNAMENT", "DECORATION", "VASE", "BLANKET", "THROW",
+    "DOORMAT", "CHIME", "WREATH", "PLAQUE", "FLOWER", "FELTCRAFT", "BEADED", "CURTAIN",
+    "MAGNET", "STOOL", "COVER", "HOLDER",
+]
