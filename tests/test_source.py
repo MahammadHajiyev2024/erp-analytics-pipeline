@@ -1,6 +1,6 @@
 import pandas as pd
 
-from bootstrap.source import load_source, read_raw, standardize_columns
+from bootstrap.source import load_source, read_raw, standardize
 
 
 def make_sheet(invoice: str, customer_id: float | None) -> pd.DataFrame:
@@ -53,8 +53,8 @@ def test_read_raw_keeps_missing_customer_ids(tmp_path):
     assert df["Customer ID"].isna().tolist() == [False, True]
 
 
-def test_standardize_columns_uses_snake_case():
-    df = standardize_columns(make_sheet("536365", 17850))
+def test_standardize_uses_snake_case():
+    df = standardize(make_sheet("536365", 17850))
 
     assert list(df.columns) == [
         "invoice",
@@ -66,6 +66,12 @@ def test_standardize_columns_uses_snake_case():
         "customer_id",
         "country",
     ]
+
+
+def test_standardize_trims_stock_codes():
+    sheet = make_sheet("536365", 17850).assign(StockCode=pd.Series(["47503J "], dtype="string"))
+
+    assert standardize(sheet)["stock_code"].tolist() == ["47503J"]
 
 
 def test_load_source_reads_cache_without_workbook(tmp_path):
