@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import pytest
 import requests
 
-from extractors.erpnext import TIMEOUT_SECONDS, can_read, get_logged_user, get_session
+from common.erpnext import TIMEOUT_SECONDS, can_read, get_logged_user, get_session
 
 BASE_URL = "http://erpnext.test"
 
