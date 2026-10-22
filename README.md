@@ -67,6 +67,7 @@ extractors/   Pull data from the ERPNext and FRED APIs
 loaders/      Write raw data to the Databricks bronze layer
 tests/        Unit tests for the Python code
 docs/         Architecture and design decisions
+common/       Code shared by several parts, such as the ERPNext API client
 ```
 
 ## Getting Started
