@@ -32,9 +32,9 @@ def read_raw(path: Path) -> pd.DataFrame:
 
 
 def standardize(df: pd.DataFrame) -> pd.DataFrame:
-    """Rename the source columns to snake_case and trim spaces around stock codes."""
+    """Rename the source columns to snake_case; trim and uppercase stock codes."""
     df = df.rename(columns=COLUMN_NAMES)
-    return df.assign(stock_code=df["stock_code"].str.strip())
+    return df.assign(stock_code=df["stock_code"].str.strip().str.upper())
 
 
 def load_source(raw_path: Path = RAW_PATH, cache_path: Path = CACHE_PATH) -> pd.DataFrame:

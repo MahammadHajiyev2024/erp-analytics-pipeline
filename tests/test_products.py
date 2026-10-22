@@ -40,7 +40,7 @@ def test_classify_matches_whole_words_only():
 def test_classify_service_items():
     assert category_of("POSTAGE", stock_code="POST") == "Shipping"
     assert category_of("Discount", stock_code="D") == "Discount"
-    assert category_of("Gift Voucher £20.00", stock_code="gift_0001_20") == "Gift Vouchers"
+    assert category_of("Gift Voucher £20.00", stock_code="GIFT_0001_20") == "Gift Vouchers"
 
 
 def test_cost_adjustment_is_repeatable_and_bounded():

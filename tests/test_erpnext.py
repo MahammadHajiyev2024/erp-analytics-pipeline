@@ -127,3 +127,14 @@ def test_create_missing_creates_nothing_when_all_exist():
 
     assert created == 0
     session.post.assert_not_called()
+
+
+def test_create_missing_ignores_case_like_erpnext():
+    session = Mock()
+    session.get.return_value = names_page("15056BL")
+    docs = [{"item_code": "15056bl"}]
+
+    created = create_missing(session, BASE_URL, "Item", docs, "item_code")
+
+    assert created == 0
+    session.post.assert_not_called()

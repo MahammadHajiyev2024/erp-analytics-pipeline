@@ -94,8 +94,8 @@ def create_missing(
     Running it again creates nothing, and after an interruption it continues where it
     stopped, because existing documents are skipped.
     """
-    existing = list_names(session, base_url, doctype)
-    missing = [doc for doc in docs if doc[name_field] not in existing]
+    existing = {name.casefold() for name in list_names(session, base_url, doctype)}
+    missing = [doc for doc in docs if doc[name_field].casefold() not in existing]
     logger.info("%s: %d exist, %d to create", doctype, len(docs) - len(missing), len(missing))
     for count, doc in enumerate(missing, start=1):
         insert(session, base_url, doctype, doc)
