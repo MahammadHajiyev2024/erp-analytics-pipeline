@@ -17,7 +17,7 @@ from bootstrap.source import load_source
 
 CATEGORIES_PATH = Path(__file__).with_name("categories.toml")
 SHIPPING_CODES = ["POST", "DOT", "C2"]
-VOUCHER_PREFIX = "gift_"
+VOUCHER_PREFIX = "GIFT_"
 OTHER = "Other"
 MAX_COST_ADJUSTMENT = 0.05
 

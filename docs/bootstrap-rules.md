@@ -22,7 +22,10 @@ already exists.
 | 5 discount (`D`) rows on normal invoices | Excluded as data errors |
 | `DCGS` items and gift vouchers | Kept |
 
-Stock codes are trimmed of surrounding spaces when the source is loaded.
+   Stock codes are trimmed of surrounding spaces and converted to uppercase when the source
+   is loaded. The same product sometimes appears in both cases (such as `15056BL` and
+   `15056bl`), and ERPNext treats names that differ only in case as the same, so 170 codes
+   are merged this way.
 
 The rules run in the order above; each sees only the rows the previous rules kept, so
 rows with several problems count once, under the first rule that removes them. Result on
@@ -60,7 +63,7 @@ raw data were duplicates or non-sales codes), and 228,688 Guest Customer rows.
   so seasonal categories such as Christmas come first. Unmatched products go to
   **Other**, which should stay below about 10–15% of products. The keywords live in a
   file in the repository and are covered by unit tests.
-  On the full data, 4,920 products get a category, and 14.7% fall into Other.
+  On the full data, 4,750 products get a category, and 15.0% fall into Other.
 - **Service items:** shipping codes (`POST`, `DOT`, `C2`) and discounts become non-stock
   service items named **Shipping** and **Discount**.
 - **Costs:** each stock item has one fixed cost: its median selling price multiplied by

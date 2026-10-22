@@ -68,8 +68,8 @@ def test_standardize_uses_snake_case():
     ]
 
 
-def test_standardize_trims_stock_codes():
-    sheet = make_sheet("536365", 17850).assign(StockCode=pd.Series(["47503J "], dtype="string"))
+def test_standardize_trims_and_uppercases_stock_codes():
+    sheet = make_sheet("536365", 17850).assign(StockCode=pd.Series(["47503j "], dtype="string"))
 
     assert standardize(sheet)["stock_code"].tolist() == ["47503J"]
 
