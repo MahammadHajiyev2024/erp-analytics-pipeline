@@ -9,8 +9,12 @@
 
 other_cost_ratio = 0.55
 
+# supplier is the company MHG buys the category's items from.
+other_supplier = "Cosy Home Goods Ltd"
+
 [[category]]
 name = "Christmas"
+supplier = "Yuletide Imports Ltd"
 cost_ratio = 0.50
 keywords = [
     "CHRISTMAS", "XMAS", "ADVENT", "BAUBLE", "SANTA", "REINDEER", "SNOWFLAKE", "NATIVITY",
@@ -19,6 +23,7 @@ keywords = [
 
 [[category]]
 name = "Candles & Lighting"
+supplier = "Northern Candle Co."
 cost_ratio = 0.55
 keywords = [
     "CANDLE", "CANDLESTICK", "T-LIGHT", "TEA LIGHT", "LANTERN", "LIGHT", "NIGHTLIGHT", "LAMP",
@@ -27,6 +32,7 @@ keywords = [
 
 [[category]]
 name = "Toys & Kids"
+supplier = "Little Wonders Toys Ltd"
 cost_ratio = 0.60
 keywords = [
     "TOY", "DOLL", "GAME", "PUZZLE", "JIGSAW", "CHILDRENS", "CHILDREN'S", "KIDS", "BABY",
@@ -35,6 +41,7 @@ keywords = [
 
 [[category]]
 name = "Party & Gift Wrap"
+supplier = "Paper & Ribbon Ltd"
 cost_ratio = 0.50
 keywords = [
     "PARTY", "WRAP", "CARD", "BALLOON", "BUNTING", "CONFETTI", "RIBBON", "TISSUE",
@@ -43,6 +50,7 @@ keywords = [
 
 [[category]]
 name = "Stationery"
+supplier = "Paper & Ribbon Ltd"
 cost_ratio = 0.50
 keywords = [
     "NOTEBOOK", "PEN", "PENCIL", "STICKER", "JOURNAL", "ERASER", "RUBBER", "DIARY",
@@ -51,6 +59,7 @@ keywords = [
 
 [[category]]
 name = "Kitchen & Dining"
+supplier = "Hearth & Table Ltd"
 cost_ratio = 0.60
 keywords = [
     "MUG", "CUP", "PLATE", "BOWL", "TEA", "TEAPOT", "TEACUP", "COFFEE", "CAKE", "CAKESTAND",
@@ -62,6 +71,7 @@ keywords = [
 
 [[category]]
 name = "Bags & Storage"
+supplier = "Carry All Supplies Ltd"
 cost_ratio = 0.55
 keywords = [
     "BAG", "BOX", "TIN", "BASKET", "CASE", "STORAGE", "PURSE", "HAMPER", "CRATE", "DRAWER",
@@ -70,6 +80,7 @@ keywords = [
 
 [[category]]
 name = "Garden"
+supplier = "Green Thumb Trading"
 cost_ratio = 0.60
 keywords = [
     "GARDEN", "PLANT", "FLOWER POT", "WATERING", "BIRD", "SEED", "HERB", "PLANTER", "TRUG",
@@ -78,6 +89,7 @@ keywords = [
 
 [[category]]
 name = "Accessories"
+supplier = "Silver Thread Accessories"
 cost_ratio = 0.45
 keywords = [
     "NECKLACE", "BRACELET", "EARRING", "HAIR", "CHARM", "UMBRELLA", "KEYRING", "KEY RING",
@@ -86,6 +98,7 @@ keywords = [
 
 [[category]]
 name = "Home Décor"
+supplier = "Cosy Home Goods Ltd"
 cost_ratio = 0.55
 keywords = [
     "FRAME", "SIGN", "CLOCK", "CUSHION", "MIRROR", "HOOK", "HANGER", "HANGING", "HEART",
