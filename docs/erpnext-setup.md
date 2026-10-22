@@ -93,9 +93,15 @@ the Administrator account.
    welcome email. On the **Roles & Permissions** tab, leave **Role Profile** empty and tick
    only **Accounts User**, **Stock User**, **Item Manager**, **Sales Master Manager**, and
    **Purchase Master Manager**. Check the roles again after the first save.
-2. **API key:** on the **Settings** tab, click **Generate Keys**. Copy the key and secret
+2. **Bootstrap Loader role:** the standard roles cannot create customers, customer groups,
+   territories, or supplier groups. In **Role List**, add a role `Bootstrap Loader` with
+   **Desk Access** ticked. In **Role Permissions Manager**, give it a level 0 rule with
+   **Read**, **Write**, and **Create** on Customer, Customer Group, Territory, and
+   Supplier Group. Then tick it on the user's **Roles & Permissions** tab and clear the
+   cache (`bench --site frontend clear-cache`).
+3. **API key:** on the **Settings** tab, click **Generate Keys**. Copy the key and secret
    into `ERPNEXT_BOOTSTRAP_API_KEY` and `ERPNEXT_BOOTSTRAP_API_SECRET` in `.env`.
-3. **Check:** `uv run python -m extractors.erpnext` must also print
+4. **Check:** `uv run python -m extractors.erpnext` must also print
    `Bootstrap user: bootstrap@mhg.local`.
 
 These standard roles give more than the bootstrap strictly needs, but only business

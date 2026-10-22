@@ -99,6 +99,29 @@ raw data were duplicates or non-sales codes), and 228,688 Guest Customer rows.
 - **Supplier payments** are out of scope.
 - **Purchase VAT** is out of scope: purchase invoices carry no tax, like supplier payments.
 
+## Loading
+
+The master data is loaded with `uv run python -m bootstrap.load_master`, as the bootstrap
+user. For each document type, the load lists what already exists in ERPNext and creates
+only what is missing, comparing names ignoring case as ERPNext does. Running it again is
+safe, and after an interruption it continues where it stopped. Existing documents are
+never updated. Types are created in dependency order, because items and customers link
+to groups and territories:
+
+| Document type | Count |
+|---|---|
+| Item Group | 14 |
+| Customer Group | 3 |
+| Territory | 43 (one per invoice country) |
+| Supplier Group | 1 |
+| Supplier | 9 |
+| Item | 4,750 |
+| Customer | 5,878 |
+
+Each stock item gets its cost as valuation rate, and its category's supplier and the
+Stores - MHG warehouse as defaults. Suppliers are set per category in
+`bootstrap/categories.toml`.
+
 ## Still to confirm
 
 - The segment threshold, the category keywords, and the cost ratios, set when the
