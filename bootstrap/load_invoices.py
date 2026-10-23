@@ -12,6 +12,7 @@ import os
 from datetime import date, datetime
 
 import pandas as pd
+import requests
 from dotenv import load_dotenv
 
 from bootstrap.clean import clean
@@ -54,22 +55,22 @@ def month_filters(month_start: date) -> list[list]:
     ]
 
 
-def main() -> None:
-    """Load one month's purchases, sales and returns, and payments as the bootstrap user."""
-    parser = argparse.ArgumentParser(description="Load one month of invoices into ERPNext.")
-    parser.add_argument("month", help="the month to load, as YYYY-MM, such as 2025-11")
-    month_start = datetime.strptime(parser.parse_args().month, "%Y-%m").date()
-
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
-    load_dotenv()
-    base_url = os.environ["ERPNEXT_URL"]
-    session = get_session(
-        os.environ["ERPNEXT_BOOTSTRAP_API_KEY"], os.environ["ERPNEXT_BOOTSTRAP_API_SECRET"]
-    )
-
+def prepare() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Return the clean source data and the products indexed by stock code."""
     cleaned, _ = clean(load_source())
     categories, other_cost_ratio = load_categories()
     products = build_products(cleaned, categories, other_cost_ratio).set_index("stock_code")
+    return cleaned, products
+
+
+def load_month(
+    session: requests.Session,
+    base_url: str,
+    cleaned: pd.DataFrame,
+    products: pd.DataFrame,
+    month_start: date,
+) -> None:
+    """Load one month's purchases, sales and returns, and payments, each only if missing."""
     rows = in_month(cleaned, month_start.year, month_start.month)
     if rows.empty:
         logger.info("No source data in %s", f"{month_start:%Y-%m}")
@@ -88,6 +89,30 @@ def main() -> None:
     )
     payments = payment_docs(pd.DataFrame(stored))
     create_missing(session, base_url, "Payment Entry", payments, "reference_no")
+
+
+def parse_month(text: str) -> date:
+    """Return the first day of a month given as YYYY-MM."""
+    return datetime.strptime(text, "%Y-%m").date()
+
+
+def bootstrap_session() -> requests.Session:
+    """Return a session for the bootstrap user, which may write to ERPNext."""
+    return get_session(
+        os.environ["ERPNEXT_BOOTSTRAP_API_KEY"], os.environ["ERPNEXT_BOOTSTRAP_API_SECRET"]
+    )
+
+
+def main() -> None:
+    """Load one month's purchases, sales and returns, and payments as the bootstrap user."""
+    parser = argparse.ArgumentParser(description="Load one month of invoices into ERPNext.")
+    parser.add_argument("month", help="the month to load, as YYYY-MM, such as 2025-11")
+    month_start = parse_month(parser.parse_args().month)
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
+    load_dotenv()
+    cleaned, products = prepare()
+    load_month(bootstrap_session(), os.environ["ERPNEXT_URL"], cleaned, products, month_start)
 
 
 if __name__ == "__main__":
