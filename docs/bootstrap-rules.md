@@ -147,6 +147,16 @@ database collisions with ERPNext's background jobs are retried with increasing w
 November 2025 loaded 9 purchase invoices, 3,109 sales invoices and returns (81,051 lines),
 and 3,109 payments and refunds.
 
+Each loaded month is verified with `uv run python -m bootstrap.verify YYYY-MM`, which reads
+ERPNext as the read-only pipeline user and compares it with the clean source, invoice by
+invoice: total quantity, net total, VAT, grand total, customer, and payment status, plus
+purchase quantity and value per supplier. Each line is rounded to pennies before lines
+are added up, as ERPNext does, and differences of up to £0.01 per invoice are accepted.
+The script exits with status 1 if any check fails.
+
+November 2025 passed every check: 3,109 invoices, net sales of £1,410,899.40 and VAT of
+£248,199.10, matching the source to the penny.
+
 ## Still to confirm
 
 - The segment threshold, the category keywords, and the cost ratios, set when the
