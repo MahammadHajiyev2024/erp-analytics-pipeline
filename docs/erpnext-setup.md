@@ -97,7 +97,8 @@ the Administrator account.
    territories, or supplier groups. In **Role List**, add a role `Bootstrap Loader` with
    **Desk Access** ticked. In **Role Permissions Manager**, give it a level 0 rule with
    **Read**, **Write**, and **Create** on Customer, Customer Group, Territory, and
-   Supplier Group. Then tick it on the user's **Roles & Permissions** tab and clear the
+   Supplier Group, and **Read**, **Write**, **Create**, and **Submit** on Sales Invoice,
+   Purchase Invoice, and Payment Entry. Then tick it on the user's **Roles & Permissions** tab and clear the
    cache (`bench --site frontend clear-cache`).
 3. **API key:** on the **Settings** tab, click **Generate Keys**. Copy the key and secret
    into `ERPNEXT_BOOTSTRAP_API_KEY` and `ERPNEXT_BOOTSTRAP_API_SECRET` in `.env`.
@@ -120,6 +121,21 @@ Done once as Administrator, before the bootstrap.
 3. **Export VAT:** in **Sales Taxes and Charges Template List**, add **Zero-Rated Export**
    with one row: On Net Total, account **VAT - MHG**, rate 0. Use it for invoices to all
    other countries. Neither template is the default; the bootstrap always sets one.
+
+## 7. Prepare for invoices
+
+Done once as Administrator, before loading invoices.
+
+1. **Rounding:** in **Global Defaults**, tick **Disable Rounded Total**. Otherwise
+   ERPNext rounds every invoice to whole pounds, and customers owe the rounded amount.
+2. **Bank account:** in the **Chart of Accounts**, under Current Assets → Bank Accounts,
+   add **Business Bank Account** (account type Bank, GBP). Customer payments and
+   refunds go through it.
+3. **Source invoice field:** in **Customize Form** for Sales Invoice, add a **Data**
+   field labelled **Source Invoice**, with **Unique** and **No Copy** ticked. ERPNext
+   stores it as `custom_source_invoice`. It holds each invoice's number from the source
+   data, so the load can tell which invoices exist, and every invoice can be traced back
+   to its source rows.
 
 ## Troubleshooting
 
