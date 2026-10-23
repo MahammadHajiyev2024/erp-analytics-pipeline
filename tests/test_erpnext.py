@@ -1,9 +1,12 @@
+import json
 from unittest.mock import Mock
 
 import pytest
 import requests
 
+import common.erpnext
 from common.erpnext import (
+    MAX_ATTEMPTS,
     PAGE_SIZE,
     TIMEOUT_SECONDS,
     ERPNextError,
@@ -13,6 +16,7 @@ from common.erpnext import (
     get_session,
     insert,
     list_names,
+    list_values,
 )
 
 BASE_URL = "http://erpnext.test"
@@ -58,8 +62,8 @@ def fake_response(ok: bool = True, body: dict | None = None) -> Mock:
     return response
 
 
-def names_page(*names: str) -> Mock:
-    return fake_response(body={"data": [{"name": name} for name in names]})
+def names_page(*names: str, field: str = "name") -> Mock:
+    return fake_response(body={"data": [{field: name} for name in names]})
 
 
 def test_list_names_fetches_every_page():
@@ -107,7 +111,7 @@ def test_insert_raises_with_erpnext_explanation():
 
 def test_create_missing_creates_only_new_documents():
     session = Mock()
-    session.get.return_value = names_page("Retail")
+    session.get.return_value = names_page("Retail", field="customer_group_name")
     session.post.return_value = fake_response(body={"data": {}})
     docs = [{"customer_group_name": name} for name in ["Retail", "Wholesale", "Guest"]]
 
@@ -120,7 +124,7 @@ def test_create_missing_creates_only_new_documents():
 
 def test_create_missing_creates_nothing_when_all_exist():
     session = Mock()
-    session.get.return_value = names_page("Retail", "Wholesale")
+    session.get.return_value = names_page("Retail", "Wholesale", field="customer_group_name")
     docs = [{"customer_group_name": "Retail"}, {"customer_group_name": "Wholesale"}]
 
     created = create_missing(session, BASE_URL, "Customer Group", docs, "customer_group_name")
@@ -131,10 +135,65 @@ def test_create_missing_creates_nothing_when_all_exist():
 
 def test_create_missing_ignores_case_like_erpnext():
     session = Mock()
-    session.get.return_value = names_page("15056BL")
+    session.get.return_value = names_page("15056BL", field="item_code")
     docs = [{"item_code": "15056bl"}]
 
     created = create_missing(session, BASE_URL, "Item", docs, "item_code")
 
     assert created == 0
     session.post.assert_not_called()
+
+
+def test_list_values_sends_fields_and_filters():
+    session = Mock()
+    session.get.return_value = names_page("536365", field="custom_source_invoice")
+    filters = [["docstatus", "=", 1]]
+
+    rows = list_values(session, BASE_URL, "Sales Invoice", ["custom_source_invoice"], filters)
+
+    assert rows == [{"custom_source_invoice": "536365"}]
+    params = session.get.call_args.kwargs["params"]
+    assert json.loads(params["fields"]) == ["custom_source_invoice"]
+    assert json.loads(params["filters"]) == filters
+
+
+def deadlock() -> Mock:
+    body = {
+        "exc_type": "QueryDeadlockError",
+        "exception": "frappe.exceptions.QueryDeadlockError: (1020, 'Record has changed')",
+    }
+    return fake_response(ok=False, body=body)
+
+
+def test_insert_retries_database_collisions(monkeypatch):
+    waits = []
+    monkeypatch.setattr(common.erpnext.time, "sleep", waits.append)
+    session = Mock()
+    stored_payment = fake_response(body={"data": {"name": "P1"}})
+    session.post.side_effect = [deadlock(), deadlock(), stored_payment]
+
+    stored = insert(session, BASE_URL, "Payment Entry", {"reference_no": "536365"})
+
+    assert stored == {"name": "P1"}
+    assert waits == [2, 4]
+
+
+def test_insert_gives_up_after_max_attempts(monkeypatch):
+    monkeypatch.setattr(common.erpnext.time, "sleep", lambda seconds: None)
+    session = Mock()
+    session.post.return_value = deadlock()
+
+    with pytest.raises(ERPNextError, match="QueryDeadlockError"):
+        insert(session, BASE_URL, "Payment Entry", {"reference_no": "536365"})
+
+    assert session.post.call_count == MAX_ATTEMPTS
+
+
+def test_insert_does_not_retry_other_errors():
+    session = Mock()
+    session.post.return_value = fake_response(ok=False, body={"exception": "LinkValidationError"})
+
+    with pytest.raises(ERPNextError):
+        insert(session, BASE_URL, "Customer", {"customer_name": "17850"})
+
+    assert session.post.call_count == 1
