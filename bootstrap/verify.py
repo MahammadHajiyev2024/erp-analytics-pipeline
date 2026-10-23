@@ -9,17 +9,15 @@ checks. The script exits with status 1 if anything differs, so a pipeline can st
 import argparse
 import os
 import sys
-from datetime import datetime
+from datetime import date
 
 import pandas as pd
+import requests
 from dotenv import load_dotenv
 
-from bootstrap.clean import clean
 from bootstrap.invoices import UK, UK_VAT_RATE, in_month, purchase_quantities
-from bootstrap.load_invoices import month_filters
+from bootstrap.load_invoices import month_filters, parse_month, prepare
 from bootstrap.load_master import load_suppliers
-from bootstrap.products import build_products, load_categories
-from bootstrap.source import load_source
 from common.erpnext import get_session, list_values
 
 TOLERANCE = 0.01  # Largest accepted difference per invoice, in GBP or units
@@ -108,21 +106,15 @@ def unsettled(actual: pd.DataFrame) -> list[str]:
     return [f"Sales invoice {key} is not settled" for key in open_keys]
 
 
-def main() -> None:
-    """Verify one month and exit with status 1 if anything differs."""
-    parser = argparse.ArgumentParser(description="Verify one loaded month against the source.")
-    parser.add_argument("month", help="the month to verify, as YYYY-MM, such as 2025-11")
-    month_start = datetime.strptime(parser.parse_args().month, "%Y-%m").date()
-
-    load_dotenv()
-    base_url = os.environ["ERPNEXT_URL"]
-    session = get_session(os.environ["ERPNEXT_API_KEY"], os.environ["ERPNEXT_API_SECRET"])
-
-    cleaned, _ = clean(load_source())
-    categories, other_cost_ratio = load_categories()
-    products = build_products(cleaned, categories, other_cost_ratio).set_index("stock_code")
+def verify_month(
+    session: requests.Session,
+    base_url: str,
+    cleaned: pd.DataFrame,
+    products: pd.DataFrame,
+    month_start: date,
+) -> tuple[list[str], list[str]]:
+    """Compare one month in ERPNext with the source; return a summary and the problems."""
     rows = in_month(cleaned, month_start.year, month_start.month)
-
     expected = expected_sales(rows)
     stored = list_values(
         session, base_url, "Sales Invoice", SALES_FIELDS, month_filters(month_start)
@@ -139,14 +131,33 @@ def main() -> None:
     problems += unsettled(actual)
     problems += compare(expected_bought, actual_bought, ["total_qty", "net_total"], "Purchase")
 
-    print(f"Sales invoices: {len(expected):,} expected, {len(actual):,} in ERPNext")
+    summary = [f"Sales invoices: {len(expected):,} expected, {len(actual):,} in ERPNext"]
     for column, label in [("net_total", "Net sales"), ("total_taxes_and_charges", "VAT")]:
-        print(
+        summary.append(
             f"{label}: £{expected[column].sum():,.2f} expected, "
             f"£{actual[column].sum():,.2f} in ERPNext"
         )
-    print(f"Purchases: {len(expected_bought)} expected, {len(actual_bought)} in ERPNext")
+    summary.append(f"Purchases: {len(expected_bought)} expected, {len(actual_bought)} in ERPNext")
+    return summary, problems
 
+
+def pipeline_session() -> requests.Session:
+    """Return a session for the read-only pipeline user."""
+    return get_session(os.environ["ERPNEXT_API_KEY"], os.environ["ERPNEXT_API_SECRET"])
+
+
+def main() -> None:
+    """Verify one month and exit with status 1 if anything differs."""
+    parser = argparse.ArgumentParser(description="Verify one loaded month against the source.")
+    parser.add_argument("month", help="the month to verify, as YYYY-MM, such as 2025-11")
+    month_start = parse_month(parser.parse_args().month)
+
+    load_dotenv()
+    cleaned, products = prepare()
+    summary, problems = verify_month(
+        pipeline_session(), os.environ["ERPNEXT_URL"], cleaned, products, month_start
+    )
+    print("\n".join(summary))
     if problems:
         print(f"{len(problems):,} problems found:")
         for problem in problems[:MAX_PROBLEMS_SHOWN]:
