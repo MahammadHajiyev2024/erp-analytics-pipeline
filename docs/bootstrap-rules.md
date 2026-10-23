@@ -86,6 +86,13 @@ raw data were duplicates or non-sales codes), and 228,688 Guest Customer rows.
   and **Zero-Rated Export - MHG**.
 - **Prices** are treated as excluding VAT. Revenue KPIs use net amounts; receivables use
   invoice totals including VAT.
+- **Payment terms:** invoices are due 30 days after the invoice date.
+- **Payments and refunds:** the Guest Customer pays on the day of the order. Other
+  customers pay 10 to 50 days after the invoice, on a day derived from a hash of the
+  invoice number, so every run produces the same dates. Returns are refunded on the same
+  schedule; otherwise a return that is not linked to an original invoice would stay on
+  the customer's account as a negative balance.
+
 
 ## Purchases and stock
 
@@ -121,6 +128,24 @@ to groups and territories:
 Each stock item gets its cost as valuation rate, and its category's supplier and the
 Stores - MHG warehouse as defaults. Suppliers are set per category in
 `bootstrap/categories.toml`.
+
+Invoices are loaded one month at a time with `uv run python -m bootstrap.load_invoices
+YYYY-MM`, in three steps, each creating only what is missing:
+
+1. **Purchases**, identified by their supplier invoice number (such as `2025-11 Northern
+   Candle Co.`).
+2. **Sales and returns**, identified by `custom_source_invoice`, created in date and
+   time order, the order in which ERPNext values stock.
+3. **Payments and refunds**, identified by their reference number (the source invoice
+   number), built from the month's submitted invoices.
+
+Cancelled documents do not count as existing. API requests do not get the defaults that
+ERPNext's screens fill in, so every invoice sends its rates, warehouse, tax rows,
+due date, and, on stock lines of returns, the item's cost as incoming rate. Temporary
+database collisions with ERPNext's background jobs are retried with increasing waits.
+
+November 2025 loaded 9 purchase invoices, 3,109 sales invoices and returns (81,051 lines),
+and 3,109 payments and refunds.
 
 ## Still to confirm
 

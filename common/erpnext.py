@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import time
 
 import requests
 from dotenv import load_dotenv
@@ -10,6 +11,11 @@ from dotenv import load_dotenv
 TIMEOUT_SECONDS = 30
 PAGE_SIZE = 1000
 LOG_EVERY = 500
+MAX_ATTEMPTS = 6
+RETRY_BASE_SECONDS = 2
+# Database collisions that ERPNext resolves by rolling the request back, so the same
+# request can safely be sent again.
+TEMPORARY_ERRORS = ("QueryDeadlockError", "QueryTimeoutError")
 
 logger = logging.getLogger(__name__)
 
@@ -51,51 +57,98 @@ def error_detail(response: requests.Response) -> str:
         body = response.json()
     except ValueError:
         return response.text[:300]
-    return body.get("exception") or body.get("_server_messages") or response.text[:300]
+    detail = body.get("exception") or body.get("_server_messages") or body.get("exc_type")
+    return detail or response.text[:300]
 
 
-def list_names(session: requests.Session, base_url: str, doctype: str) -> set[str]:
-    """Return the names of all documents of a doctype, fetched page by page."""
-    names: set[str] = set()
+def list_values(
+    session: requests.Session,
+    base_url: str,
+    doctype: str,
+    fields: list[str],
+    filters: list[list] | None = None,
+) -> list[dict]:
+    """Return the given fields of all documents of a doctype, fetched page by page.
+
+    filters uses ERPNext's list format, such as [["docstatus", "=", 1]].
+    """
+    rows: list[dict] = []
     start = 0
     while True:
+        params = {
+            "fields": json.dumps(fields),
+            "order_by": "name asc",
+            "limit_start": start,
+            "limit_page_length": PAGE_SIZE,
+        }
+        if filters:
+            params["filters"] = json.dumps(filters)
         response = session.get(
-            f"{base_url}/api/resource/{doctype}",
-            params={
-                "fields": json.dumps(["name"]),
-                "order_by": "name asc",
-                "limit_start": start,
-                "limit_page_length": PAGE_SIZE,
-            },
-            timeout=TIMEOUT_SECONDS,
+            f"{base_url}/api/resource/{doctype}", params=params, timeout=TIMEOUT_SECONDS
         )
         if not response.ok:
             raise ERPNextError(f"Listing {doctype} failed: {error_detail(response)}")
         page = response.json()["data"]
-        names.update(row["name"] for row in page)
+        rows.extend(page)
         if len(page) < PAGE_SIZE:
-            return names
+            return rows
         start += PAGE_SIZE
 
 
+def list_names(session: requests.Session, base_url: str, doctype: str) -> set[str]:
+    """Return the names of all documents of a doctype."""
+    return {row["name"] for row in list_values(session, base_url, doctype, ["name"])}
+
+
+def is_temporary(response: requests.Response) -> bool:
+    """Return True if ERPNext rolled the request back because of a database collision."""
+    try:
+        body = response.json()
+    except ValueError:
+        return False
+    detail = f"{body.get('exc_type', '')} {body.get('exception', '')}"
+    return any(error in detail for error in TEMPORARY_ERRORS)
+
+
 def insert(session: requests.Session, base_url: str, doctype: str, doc: dict) -> dict:
-    """Create one document and return it as ERPNext stored it."""
-    response = session.post(f"{base_url}/api/resource/{doctype}", json=doc, timeout=TIMEOUT_SECONDS)
-    if not response.ok:
-        raise ERPNextError(f"Creating {doctype} {doc} failed: {error_detail(response)}")
-    return response.json()["data"]
+    """Create one document and return it as ERPNext stored it.
+
+    Temporary database collisions are retried, waiting 2, 4, 8, ... seconds between
+    attempts; any other refusal raises ERPNextError straight away.
+    """
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        response = session.post(
+            f"{base_url}/api/resource/{doctype}", json=doc, timeout=TIMEOUT_SECONDS
+        )
+        if response.ok:
+            return response.json()["data"]
+        if attempt == MAX_ATTEMPTS or not is_temporary(response):
+            break
+        wait = RETRY_BASE_SECONDS * 2 ** (attempt - 1)
+        logger.warning(
+            "%s: database collision, retrying in %d s (attempt %d of %d)",
+            doctype,
+            wait,
+            attempt,
+            MAX_ATTEMPTS,
+        )
+        time.sleep(wait)
+    raise ERPNextError(f"Creating {doctype} {doc} failed: {error_detail(response)}")
 
 
 def create_missing(
-    session: requests.Session, base_url: str, doctype: str, docs: list[dict], name_field: str
+    session: requests.Session, base_url: str, doctype: str, docs: list[dict], key_field: str
 ) -> int:
-    """Create the documents whose name is not in ERPNext yet; return how many were created.
+    """Create the documents whose key is not in ERPNext yet; return how many were created.
 
+    key_field identifies a document, both in docs and in ERPNext, such as item_code or
+    custom_source_invoice. Keys are compared ignoring case, as ERPNext does with names.
     Running it again creates nothing, and after an interruption it continues where it
     stopped, because existing documents are skipped.
     """
-    existing = {name.casefold() for name in list_names(session, base_url, doctype)}
-    missing = [doc for doc in docs if doc[name_field].casefold() not in existing]
+    rows = list_values(session, base_url, doctype, [key_field])
+    existing = {str(row[key_field]).casefold() for row in rows if row.get(key_field)}
+    missing = [doc for doc in docs if str(doc[key_field]).casefold() not in existing]
     logger.info("%s: %d exist, %d to create", doctype, len(docs) - len(missing), len(missing))
     for count, doc in enumerate(missing, start=1):
         insert(session, base_url, doctype, doc)
