@@ -9,6 +9,9 @@ import requests
 from dotenv import load_dotenv
 
 TIMEOUT_SECONDS = 30
+# Creating a large document (such as a purchase invoice with hundreds of lines) can take
+# longer than a read; ERPNext's web server itself allows a request up to 120 seconds.
+INSERT_TIMEOUT_SECONDS = 120
 PAGE_SIZE = 1000
 LOG_EVERY = 500
 MAX_ATTEMPTS = 6
@@ -118,7 +121,7 @@ def insert(session: requests.Session, base_url: str, doctype: str, doc: dict) ->
     """
     for attempt in range(1, MAX_ATTEMPTS + 1):
         response = session.post(
-            f"{base_url}/api/resource/{doctype}", json=doc, timeout=TIMEOUT_SECONDS
+            f"{base_url}/api/resource/{doctype}", json=doc, timeout=INSERT_TIMEOUT_SECONDS
         )
         if response.ok:
             return response.json()["data"]
