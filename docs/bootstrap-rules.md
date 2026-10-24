@@ -157,6 +157,13 @@ The script exits with status 1 if any check fails.
 November 2025 passed every check: 3,109 invoices, net sales of £1,410,899.40 and VAT of
 £248,199.10, matching the source to the penny.
 
+The full history (28 November 2023 to 5 December 2025) is loaded and verified with
+`uv run python -m bootstrap.load_history 2023-11 2025-12`, which loads and verifies each
+month in order and stops at the first month that fails. It was loaded in four batches,
+with a database backup copied off the container after each, and every month passed
+verification. Large purchase invoices need up to 120 seconds to create, so inserts use a
+longer timeout than reads.
+
 ## Still to confirm
 
 - The segment threshold, the category keywords, and the cost ratios, set when the
