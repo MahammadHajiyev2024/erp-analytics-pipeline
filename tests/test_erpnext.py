@@ -6,6 +6,7 @@ import requests
 
 import common.erpnext
 from common.erpnext import (
+    INSERT_TIMEOUT_SECONDS,
     MAX_ATTEMPTS,
     PAGE_SIZE,
     TIMEOUT_SECONDS,
@@ -95,7 +96,7 @@ def test_insert_posts_document_and_returns_stored_version():
     session.post.assert_called_once_with(
         f"{BASE_URL}/api/resource/Item Group",
         json={"item_group_name": "Christmas"},
-        timeout=TIMEOUT_SECONDS,
+        timeout=INSERT_TIMEOUT_SECONDS,
     )
 
 
