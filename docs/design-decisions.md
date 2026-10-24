@@ -107,3 +107,14 @@ is three days short of 14 years, so the November peak stays in November. The his
 covers two complete calendar years (2024 and 2025) for year-over-year analysis.
 **Alternative:** Shifting by exactly 14 years, which keeps calendar dates but moves every
 order three weekdays later, creating a weekly pattern the business never had.
+
+## 15. Simulate new activity by replaying history
+
+**Decision:** The simulator generates each new day by replaying the same weekday 52 weeks
+earlier, with deterministic variation, growth, new customers, successor products, and
+occasional changes and cancellations (see the simulator rules).
+**Why:** Replaying real days keeps what is hard to invent, such as which products are
+bought together, each customer's usual basket, seasonality, and closed days, while
+hash-based variation keeps every run reproducible and idempotent.
+**Alternative:** Generating invoices from fitted statistical distributions, which is more
+flexible but loses the correlations between customers, products, and seasons.
