@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import time
+from urllib.parse import quote
 
 import requests
 from dotenv import load_dotenv
@@ -113,16 +114,14 @@ def is_temporary(response: requests.Response) -> bool:
     return any(error in detail for error in TEMPORARY_ERRORS)
 
 
-def insert(session: requests.Session, base_url: str, doctype: str, doc: dict) -> dict:
-    """Create one document and return it as ERPNext stored it.
+def send(session: requests.Session, method: str, url: str, doc: dict, description: str) -> dict:
+    """Send a document to ERPNext and return it as ERPNext stored it.
 
     Temporary database collisions are retried, waiting 2, 4, 8, ... seconds between
     attempts; any other refusal raises ERPNextError straight away.
     """
     for attempt in range(1, MAX_ATTEMPTS + 1):
-        response = session.post(
-            f"{base_url}/api/resource/{doctype}", json=doc, timeout=INSERT_TIMEOUT_SECONDS
-        )
+        response = session.request(method, url, json=doc, timeout=INSERT_TIMEOUT_SECONDS)
         if response.ok:
             return response.json()["data"]
         if attempt == MAX_ATTEMPTS or not is_temporary(response):
@@ -130,13 +129,27 @@ def insert(session: requests.Session, base_url: str, doctype: str, doc: dict) ->
         wait = RETRY_BASE_SECONDS * 2 ** (attempt - 1)
         logger.warning(
             "%s: database collision, retrying in %d s (attempt %d of %d)",
-            doctype,
+            description,
             wait,
             attempt,
             MAX_ATTEMPTS,
         )
         time.sleep(wait)
-    raise ERPNextError(f"Creating {doctype} {doc} failed: {error_detail(response)}")
+    raise ERPNextError(f"{description} {doc} failed: {error_detail(response)}")
+
+
+def insert(session: requests.Session, base_url: str, doctype: str, doc: dict) -> dict:
+    """Create one document and return it as ERPNext stored it."""
+    url = f"{base_url}/api/resource/{doctype}"
+    return send(session, "POST", url, doc, f"Creating {doctype}")
+
+
+def update(
+    session: requests.Session, base_url: str, doctype: str, name: str, changes: dict
+) -> dict:
+    """Change fields of an existing document and return it as ERPNext stored it."""
+    url = f"{base_url}/api/resource/{doctype}/{quote(name, safe='')}"
+    return send(session, "PUT", url, changes, f"Updating {doctype} {name}")
 
 
 def create_missing(

@@ -18,6 +18,7 @@ from common.erpnext import (
     insert,
     list_names,
     list_values,
+    update,
 )
 
 BASE_URL = "http://erpnext.test"
@@ -88,12 +89,13 @@ def test_list_names_raises_with_erpnext_explanation():
 
 def test_insert_posts_document_and_returns_stored_version():
     session = Mock()
-    session.post.return_value = fake_response(body={"data": {"name": "Christmas"}})
+    session.request.return_value = fake_response(body={"data": {"name": "Christmas"}})
 
     stored = insert(session, BASE_URL, "Item Group", {"item_group_name": "Christmas"})
 
     assert stored == {"name": "Christmas"}
-    session.post.assert_called_once_with(
+    session.request.assert_called_once_with(
+        "POST",
         f"{BASE_URL}/api/resource/Item Group",
         json={"item_group_name": "Christmas"},
         timeout=INSERT_TIMEOUT_SECONDS,
@@ -102,7 +104,7 @@ def test_insert_posts_document_and_returns_stored_version():
 
 def test_insert_raises_with_erpnext_explanation():
     session = Mock()
-    session.post.return_value = fake_response(
+    session.request.return_value = fake_response(
         ok=False, body={"exception": "LinkValidationError: Could not find Territory: France"}
     )
 
@@ -113,13 +115,13 @@ def test_insert_raises_with_erpnext_explanation():
 def test_create_missing_creates_only_new_documents():
     session = Mock()
     session.get.return_value = names_page("Retail", field="customer_group_name")
-    session.post.return_value = fake_response(body={"data": {}})
+    session.request.return_value = fake_response(body={"data": {}})
     docs = [{"customer_group_name": name} for name in ["Retail", "Wholesale", "Guest"]]
 
     created = create_missing(session, BASE_URL, "Customer Group", docs, "customer_group_name")
 
     assert created == 2
-    posted = [call.kwargs["json"] for call in session.post.call_args_list]
+    posted = [call.kwargs["json"] for call in session.request.call_args_list]
     assert posted == [{"customer_group_name": "Wholesale"}, {"customer_group_name": "Guest"}]
 
 
@@ -131,7 +133,7 @@ def test_create_missing_creates_nothing_when_all_exist():
     created = create_missing(session, BASE_URL, "Customer Group", docs, "customer_group_name")
 
     assert created == 0
-    session.post.assert_not_called()
+    session.request.assert_not_called()
 
 
 def test_create_missing_ignores_case_like_erpnext():
@@ -142,7 +144,7 @@ def test_create_missing_ignores_case_like_erpnext():
     created = create_missing(session, BASE_URL, "Item", docs, "item_code")
 
     assert created == 0
-    session.post.assert_not_called()
+    session.request.assert_not_called()
 
 
 def test_list_values_sends_fields_and_filters():
@@ -171,7 +173,7 @@ def test_insert_retries_database_collisions(monkeypatch):
     monkeypatch.setattr(common.erpnext.time, "sleep", waits.append)
     session = Mock()
     stored_payment = fake_response(body={"data": {"name": "P1"}})
-    session.post.side_effect = [deadlock(), deadlock(), stored_payment]
+    session.request.side_effect = [deadlock(), deadlock(), stored_payment]
 
     stored = insert(session, BASE_URL, "Payment Entry", {"reference_no": "536365"})
 
@@ -182,19 +184,35 @@ def test_insert_retries_database_collisions(monkeypatch):
 def test_insert_gives_up_after_max_attempts(monkeypatch):
     monkeypatch.setattr(common.erpnext.time, "sleep", lambda seconds: None)
     session = Mock()
-    session.post.return_value = deadlock()
+    session.request.return_value = deadlock()
 
     with pytest.raises(ERPNextError, match="QueryDeadlockError"):
         insert(session, BASE_URL, "Payment Entry", {"reference_no": "536365"})
 
-    assert session.post.call_count == MAX_ATTEMPTS
+    assert session.request.call_count == MAX_ATTEMPTS
 
 
 def test_insert_does_not_retry_other_errors():
     session = Mock()
-    session.post.return_value = fake_response(ok=False, body={"exception": "LinkValidationError"})
+    refused = fake_response(ok=False, body={"exception": "LinkValidationError"})
+    session.request.return_value = refused
 
     with pytest.raises(ERPNextError):
         insert(session, BASE_URL, "Customer", {"customer_name": "17850"})
 
-    assert session.post.call_count == 1
+    assert session.request.call_count == 1
+
+
+def test_update_puts_changes_to_the_named_document():
+    session = Mock()
+    session.request.return_value = fake_response(body={"data": {"name": "85123A", "disabled": 1}})
+
+    stored = update(session, BASE_URL, "Item", "85123A", {"disabled": 1})
+
+    assert stored["disabled"] == 1
+    session.request.assert_called_once_with(
+        "PUT",
+        f"{BASE_URL}/api/resource/Item/85123A",
+        json={"disabled": 1},
+        timeout=INSERT_TIMEOUT_SECONDS,
+    )
