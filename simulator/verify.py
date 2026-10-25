@@ -163,6 +163,16 @@ def verify_products(
     ]
 
 
+def verify_days(
+    session: requests.Session, base_url: str, simulation: Simulation, days: list[date]
+) -> tuple[list[str], list[str]]:
+    """Check a range of simulated days in every way; return a summary and the problems."""
+    summary, problems = verify_sales(session, base_url, simulation, days)
+    problems += verify_purchases(session, base_url, simulation, days)
+    problems += verify_products(session, base_url, simulation, days[-1])
+    return summary, problems
+
+
 def main() -> None:
     """Verify a range of simulated days and exit with status 1 if anything differs."""
     parser = argparse.ArgumentParser(description="Verify simulated days against ERPNext.")
@@ -180,9 +190,7 @@ def main() -> None:
     simulation = build_simulation(cleaned, products, last)
     days = days_between(first, last)
 
-    summary, problems = verify_sales(session, base_url, simulation, days)
-    problems += verify_purchases(session, base_url, simulation, days)
-    problems += verify_products(session, base_url, simulation, last)
+    summary, problems = verify_days(session, base_url, simulation, days)
 
     print(f"Verifying {first} to {last} in {base_url}")
     print("\n".join(summary))

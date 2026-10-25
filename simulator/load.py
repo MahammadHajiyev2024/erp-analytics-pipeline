@@ -163,20 +163,15 @@ def build_simulation(cleaned: pd.DataFrame, products: pd.DataFrame, last_day: da
 
 
 def load_days(
-    session: requests.Session,
-    base_url: str,
-    cleaned: pd.DataFrame,
-    products: pd.DataFrame,
-    days: list[date],
+    session: requests.Session, base_url: str, simulation: Simulation, days: list[date]
 ) -> None:
     """Load each month's products, segment review, and purchases, then each day's activity.
 
     A day's activity is its sales and returns, the cancellations of the previous day's
     chosen invoices, and the payments that fall due.
     """
-    simulation = build_simulation(cleaned, products, days[-1])
     suppliers = load_suppliers()
-    customers = build_customers(cleaned).set_index("customer")
+    customers = build_customers(simulation.cleaned).set_index("customer")
     months = sorted({day.replace(day=1) for day in days})
 
     for month_start in months:
@@ -234,7 +229,8 @@ def main() -> None:
     base_url = os.environ["ERPNEXT_URL"]
     logger.info("Simulating %s to %s in %s", first, last, base_url)
     cleaned, products = prepare()
-    load_days(bootstrap_session(), base_url, cleaned, products, days_between(first, last))
+    simulation = build_simulation(cleaned, products, last)
+    load_days(bootstrap_session(), base_url, simulation, days_between(first, last))
 
 
 if __name__ == "__main__":
