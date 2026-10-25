@@ -9,6 +9,7 @@ talks to the test ERPNext. Like the bootstrap, each step only creates what is mi
 import argparse
 import logging
 import os
+from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
@@ -125,6 +126,42 @@ def load_environment(test: bool) -> None:
         load_dotenv(ROOT / ".env.test", override=True)
 
 
+@dataclass(frozen=True)
+class Simulation:
+    """Everything needed to generate simulated days, so loading and verifying agree."""
+
+    cleaned: pd.DataFrame
+    products: pd.DataFrame
+    new_products: pd.DataFrame
+    replaced: dict[str, tuple[str, date]]
+    new_customer_invoices: frozenset[str]
+    history_end: date
+
+    def day(self, day: date) -> pd.DataFrame:
+        """Return the simulated sales and return rows of one day."""
+        rows = simulate_day(self.cleaned, day, self.history_end, self.new_customer_invoices)
+        return apply_successors(rows, self.replaced, day)
+
+    def launched(self, month_start: date) -> dict[str, str]:
+        """Return the replaced products launched by the given month, with their successors."""
+        return {code: new for code, (new, launch) in self.replaced.items() if launch <= month_start}
+
+
+def build_simulation(cleaned: pd.DataFrame, products: pd.DataFrame, last_day: date) -> Simulation:
+    """Return the simulation for days up to last_day; products are indexed by stock code."""
+    history_end = cleaned["invoice_date"].max().date()
+    replaced = successors(cleaned, products, history_end, last_day.replace(day=1))
+    new_products = successor_products(products, replaced, *load_categories())
+    return Simulation(
+        cleaned=cleaned,
+        products=pd.concat([products, new_products]),
+        new_products=new_products,
+        replaced=replaced,
+        new_customer_invoices=first_orders(cleaned),
+        history_end=history_end,
+    )
+
+
 def load_days(
     session: requests.Session,
     base_url: str,
@@ -137,25 +174,16 @@ def load_days(
     A day's activity is its sales and returns, the cancellations of the previous day's
     chosen invoices, and the payments that fall due.
     """
-    history_end = cleaned["invoice_date"].max().date()
+    simulation = build_simulation(cleaned, products, days[-1])
     suppliers = load_suppliers()
     customers = build_customers(cleaned).set_index("customer")
-    new_customer_invoices = first_orders(cleaned)
     months = sorted({day.replace(day=1) for day in days})
 
-    replaced = successors(cleaned, products, history_end, months[-1])
-    new_products = successor_products(products, replaced, *load_categories())
-    all_products = pd.concat([products, new_products])
-
-    def simulate(day: date) -> pd.DataFrame:
-        rows = simulate_day(cleaned, day, history_end, new_customer_invoices)
-        return apply_successors(rows, replaced, day)
-
     for month_start in months:
-        month = month_days(month_start, history_end)
+        month = month_days(month_start, simulation.history_end)
         logger.info("=== %s: products and purchases ===", f"{month_start:%Y-%m}")
-        launched = {code: new for code, (new, launch) in replaced.items() if launch <= month_start}
-        launched_products = new_products.loc[list(launched.values())].reset_index()
+        launched = simulation.launched(month_start)
+        launched_products = simulation.new_products.loc[list(launched.values())].reset_index()
         create_missing(
             session, base_url, "Item", item_docs(launched_products, suppliers), "item_code"
         )
@@ -165,25 +193,25 @@ def load_days(
 
         review_segments(session, base_url, month[0])
 
-        rows = pd.concat([simulate(day) for day in month])
+        rows = pd.concat([simulation.day(day) for day in month])
         purchases = purchase_invoice_docs(
-            rows, all_products, suppliers, month[0], bill_prefix=PURCHASE_PREFIX
+            rows, simulation.products, suppliers, month[0], bill_prefix=PURCHASE_PREFIX
         )
         create_missing(session, base_url, "Purchase Invoice", purchases, "bill_no")
 
         for day in [day for day in days if day.replace(day=1) == month_start]:
             logger.info("=== %s: sales ===", day)
-            rows = simulate(day)
+            rows = simulation.day(day)
             create_missing(
                 session, base_url, "Customer", new_customer_docs(rows, customers), "customer_name"
             )
-            sales = sales_invoice_docs(rows, all_products)
+            sales = sales_invoice_docs(rows, simulation.products)
             create_missing(
                 session, base_url, "Sales Invoice", chronological(sales), "custom_source_invoice"
             )
             previous = day - timedelta(days=1)
-            if previous > history_end:
-                cancel_invoices(session, base_url, to_cancel(simulate(previous)))
+            if previous > simulation.history_end:
+                cancel_invoices(session, base_url, to_cancel(simulation.day(previous)))
             invoices = recent_simulated_invoices(session, base_url, day)
             payments = due_payments(invoices, day)
             create_missing(session, base_url, "Payment Entry", payments, "reference_no")
