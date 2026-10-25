@@ -117,3 +117,11 @@ def test_purchase_invoices_group_items_by_supplier_at_cost():
     assert candle["items"] == [
         {"item_code": "85123A", "qty": 12, "rate": 1.57, "warehouse": "Stores - MHG"}
     ]
+
+
+def test_purchase_invoices_can_prefix_their_bill_numbers():
+    rows = make_rows({"quantity": 10})
+
+    docs = purchase_invoice_docs(rows, PRODUCTS, SUPPLIERS, date(2025, 12, 6), bill_prefix="SIM ")
+
+    assert docs[0]["bill_no"] == "SIM 2025-12 Northern Candle Co."

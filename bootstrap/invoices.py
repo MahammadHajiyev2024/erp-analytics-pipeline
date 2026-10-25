@@ -114,11 +114,16 @@ def purchase_quantities(rows: pd.DataFrame, products: pd.DataFrame) -> pd.Series
 
 
 def purchase_invoice_docs(
-    rows: pd.DataFrame, products: pd.DataFrame, suppliers: dict[str, str], purchase_date: date
+    rows: pd.DataFrame,
+    products: pd.DataFrame,
+    suppliers: dict[str, str],
+    purchase_date: date,
+    bill_prefix: str = "",
 ) -> list[dict]:
     """Return one Purchase Invoice per supplier, dated before the month's first sale.
 
     products must be indexed by stock code; suppliers maps each category to its supplier.
+    bill_prefix keeps supplier invoice numbers apart, such as "SIM " for simulated months.
     """
     quantities = purchase_quantities(rows, products)
     lines = pd.DataFrame(
@@ -136,7 +141,7 @@ def purchase_invoice_docs(
             COMMON_FIELDS
             | {
                 "supplier": supplier,
-                "bill_no": f"{purchase_date:%Y-%m} {supplier}",
+                "bill_no": f"{bill_prefix}{purchase_date:%Y-%m} {supplier}",
                 "bill_date": posted,
                 "posting_date": posted,
                 "posting_time": "00:00:00",
