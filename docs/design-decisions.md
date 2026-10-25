@@ -118,3 +118,13 @@ bought together, each customer's usual basket, seasonality, and closed days, whi
 hash-based variation keeps every run reproducible and idempotent.
 **Alternative:** Generating invoices from fitted statistical distributions, which is more
 flexible but loses the correlations between customers, products, and seasons.
+
+#### 16. Ingestion to bronze via landing volume and COPY INTO
+**Decision:** Extractors write raw records as JSON Lines (.jsonl) files into a Databricks Unity Catalog Volume (`erp_analytics.bronze.landing`), which are then ingested into bronze Delta tables using Databricks `COPY INTO`.
+**Why:**
+- **Built-in Idempotency:** `COPY INTO` tracks loaded files natively, preventing duplicate ingestion if a pipeline batch is re-run.
+- **Compute Efficiency:** Bulk loading one file via `COPY INTO` on a 2X-Small warehouse consumes far fewer compute credits and runtime than running thousands of individual `INSERT` statements.
+- **Auditability and Replayability:** Raw responses remain archived in the landing volume, allowing the bronze layer to be rebuilt without re-querying ERPNext.
+- **Decoupled Architecture:** Network uploads from Python and warehouse compute run independently; warehouse pauses do not interrupt extraction.
+- **JSON Lines Representation:** Preserves the exact nested payloads returned by the ERPNext REST API until dbt flattens and types them in the silver layer.
+**Alternative:** Direct row-by-row `INSERT` statements over SQL, which is slow for large datasets (over 1M rows), consumes daily quotas, and provides no raw file archive.
