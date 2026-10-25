@@ -139,10 +139,11 @@ YYYY-MM`, in three steps, each creating only what is missing:
 3. **Payments and refunds**, identified by their reference number (the source invoice
    number), built from the month's submitted invoices.
 
-Cancelled documents do not count as existing. API requests do not get the defaults that
-ERPNext's screens fill in, so every invoice sends its rates, warehouse, tax rows,
-due date, and, on stock lines of returns, the item's cost as incoming rate. Temporary
-database collisions with ERPNext's background jobs are retried with increasing waits.
+Cancelled documents count as existing too, so a deliberately cancelled document is never
+recreated automatically (with a unique source key, it could not be recreated anyway).
+API requests do not get the defaults thatERPNext's screens fill in, so every invoice sends
+its rates, warehouse, tax rows,due date, and, on stock lines of returns, the item's cost as incoming rate.
+Temporary database collisions with ERPNext's background jobs are retried with increasing waits.
 
 November 2025 loaded 9 purchase invoices, 3,109 sales invoices and returns (81,051 lines),
 and 3,109 payments and refunds.
