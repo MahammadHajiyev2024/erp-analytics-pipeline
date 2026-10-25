@@ -1,4 +1,4 @@
-"""Load simulated days into ERPNext: each month's purchases first, then each day's sales.
+"""Load simulated days into ERPNext: each month's purchases, then each day's sales and payments.
 
 Usage: uv run python -m simulator.load 2025-12-06 2025-12-10 --test
 
@@ -17,9 +17,10 @@ import requests
 from dotenv import load_dotenv
 
 from bootstrap.invoices import purchase_invoice_docs, sales_invoice_docs
-from bootstrap.load_invoices import bootstrap_session, chronological, prepare
+from bootstrap.load_invoices import INVOICE_FIELDS, bootstrap_session, chronological, prepare
 from bootstrap.load_master import load_suppliers
-from common.erpnext import create_missing
+from bootstrap.payments import MAX_DELAY_DAYS, payment_docs
+from common.erpnext import create_missing, list_values
 from simulator.days import simulate_day
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,6 +41,25 @@ def month_days(day: date, history_end: date) -> list[date]:
     return days_between(max(month_start, history_end + timedelta(days=1)), month_end)
 
 
+def due_payments(invoices: pd.DataFrame, day: date) -> list[dict]:
+    """Return the payments and refunds of the given invoices that are due on or before day."""
+    if invoices.empty:
+        return []
+    return [doc for doc in payment_docs(invoices) if doc["posting_date"] <= day.isoformat()]
+
+
+def recent_simulated_invoices(session: requests.Session, base_url: str, day: date) -> pd.DataFrame:
+    """Return the submitted simulated invoices that could fall due on day."""
+    window_start = day - timedelta(days=MAX_DELAY_DAYS)
+    filters = [
+        ["docstatus", "=", 1],
+        ["custom_source_invoice", "like", "SIM-%"],
+        ["posting_date", "between", [window_start.isoformat(), day.isoformat()]],
+    ]
+    rows = list_values(session, base_url, "Sales Invoice", INVOICE_FIELDS, filters)
+    return pd.DataFrame(rows, columns=INVOICE_FIELDS)
+
+
 def load_environment(test: bool) -> None:
     """Load .env, and with test, apply .env.test on top of it."""
     load_dotenv(ROOT / ".env")
@@ -54,7 +74,7 @@ def load_days(
     products: pd.DataFrame,
     days: list[date],
 ) -> None:
-    """Load each month's purchases, then each day's sales and returns, in order."""
+    """Load each month's purchases, then each day's sales and returns and due payments."""
     history_end = cleaned["invoice_date"].max().date()
     suppliers = load_suppliers()
     months = sorted({day.replace(day=1) for day in days})
@@ -74,6 +94,9 @@ def load_days(
             create_missing(
                 session, base_url, "Sales Invoice", chronological(sales), "custom_source_invoice"
             )
+            invoices = recent_simulated_invoices(session, base_url, day)
+            payments = due_payments(invoices, day)
+            create_missing(session, base_url, "Payment Entry", payments, "reference_no")
 
 
 def main() -> None:
