@@ -5,7 +5,9 @@ __pycache__/
 
 # Secrets: never commit real credentials
 .env
+.env.test
 !.env.example
+
 
 # Tool caches
 .ruff_cache/
