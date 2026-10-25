@@ -1,6 +1,9 @@
 from datetime import date
 
-from simulator.load import days_between, month_days
+import pandas as pd
+
+from bootstrap.clean import GUEST_CUSTOMER
+from simulator.load import days_between, due_payments, month_days
 
 HISTORY_END = date(2025, 12, 5)
 
@@ -25,3 +28,32 @@ def test_month_days_cover_whole_later_months():
     february = month_days(date(2026, 2, 14), HISTORY_END)
 
     assert (february[0], february[-1], len(february)) == (date(2026, 2, 1), date(2026, 2, 28), 28)
+
+
+def make_invoices(*invoices: dict) -> pd.DataFrame:
+    defaults = {
+        "name": "ACC-SINV-2026-00001",
+        "custom_source_invoice": "SIM-20251207-1-574585",
+        "customer": "17850",
+        "posting_date": "2025-12-07",
+        "grand_total": 12.0,
+        "is_return": 0,
+    }
+    return pd.DataFrame([defaults | invoice for invoice in invoices])
+
+
+def test_guest_customer_pays_on_the_day():
+    invoices = make_invoices({"customer": GUEST_CUSTOMER})
+
+    assert len(due_payments(invoices, date(2025, 12, 7))) == 1
+
+
+def test_other_customers_pay_only_once_their_day_has_come():
+    invoices = make_invoices({})
+
+    assert due_payments(invoices, date(2025, 12, 16)) == []
+    assert len(due_payments(invoices, date(2026, 1, 26))) == 1
+
+
+def test_no_invoices_means_no_payments():
+    assert due_payments(make_invoices().iloc[0:0], date(2025, 12, 7)) == []
