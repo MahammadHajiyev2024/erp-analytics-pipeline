@@ -10,7 +10,7 @@ from datetime import date, timedelta
 
 import pandas as pd
 
-from bootstrap.clean import is_cancellation
+from bootstrap.clean import is_cancellation, is_return_invoice
 from bootstrap.load_master import WAREHOUSE
 
 UK = "United Kingdom"
@@ -77,7 +77,7 @@ def sales_invoice_docs(rows: pd.DataFrame, products: pd.DataFrame) -> list[dict]
     docs = []
     for invoice, lines in rows.groupby("invoice", sort=True):
         first = lines.iloc[0]
-        is_return = invoice.startswith("C")
+        is_return = is_return_invoice(invoice)
         posted = first["invoice_date"]
         template, taxes = vat(first["country"])
         docs.append(

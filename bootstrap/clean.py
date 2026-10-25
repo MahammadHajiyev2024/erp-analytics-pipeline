@@ -25,9 +25,17 @@ GUEST_CUSTOMER = "Guest Customer"
 DATE_SHIFT = pd.Timedelta(weeks=730)  # Design decision 14
 
 
+def is_return_invoice(invoice: str) -> bool:
+    """Return True if an invoice key belongs to a return: its source number starts with C.
+
+    Simulated keys such as SIM-20251209-1-C536379 end with the source invoice number.
+    """
+    return invoice.split("-")[-1].startswith("C")
+
+
 def is_cancellation(df: pd.DataFrame) -> pd.Series:
-    """Return True for rows on cancellation invoices (invoice numbers starting with C)."""
-    return df["invoice"].str.startswith("C")
+    """Return True for rows on cancellation invoices (see is_return_invoice)."""
+    return df["invoice"].str.split("-").str[-1].str.startswith("C")
 
 
 def remove_duplicates(df: pd.DataFrame) -> pd.DataFrame:
