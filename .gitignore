@@ -37,3 +37,9 @@ Thumbs.db
 # Claude Code (kept local)
 .claude/
 CLAUDE.md
+
+
+# AI chat switchboard (kept local)
+docs/ai-context/
+.docs/ai-context/
+*.handoff.md
