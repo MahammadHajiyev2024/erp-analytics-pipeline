@@ -115,7 +115,7 @@ def is_temporary(response: requests.Response) -> bool:
 
 
 def send(session: requests.Session, method: str, url: str, doc: dict, description: str) -> dict:
-    """Send a document to ERPNext and return it as ERPNext stored it.
+    """Send a document to ERPNext and return ERPNext's answer.
 
     Temporary database collisions are retried, waiting 2, 4, 8, ... seconds between
     attempts; any other refusal raises ERPNextError straight away.
@@ -123,7 +123,8 @@ def send(session: requests.Session, method: str, url: str, doc: dict, descriptio
     for attempt in range(1, MAX_ATTEMPTS + 1):
         response = session.request(method, url, json=doc, timeout=INSERT_TIMEOUT_SECONDS)
         if response.ok:
-            return response.json()["data"]
+            body = response.json()
+            return body.get("data", body.get("message"))
         if attempt == MAX_ATTEMPTS or not is_temporary(response):
             break
         wait = RETRY_BASE_SECONDS * 2 ** (attempt - 1)
@@ -150,6 +151,12 @@ def update(
     """Change fields of an existing document and return it as ERPNext stored it."""
     url = f"{base_url}/api/resource/{doctype}/{quote(name, safe='')}"
     return send(session, "PUT", url, changes, f"Updating {doctype} {name}")
+
+
+def cancel(session: requests.Session, base_url: str, doctype: str, name: str) -> None:
+    """Cancel a submitted document, as a user clicking Cancel would."""
+    url = f"{base_url}/api/method/frappe.client.cancel"
+    send(session, "POST", url, {"doctype": doctype, "name": name}, f"Cancelling {doctype} {name}")
 
 
 def create_missing(

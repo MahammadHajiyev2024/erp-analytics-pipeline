@@ -12,6 +12,7 @@ from common.erpnext import (
     TIMEOUT_SECONDS,
     ERPNextError,
     can_read,
+    cancel,
     create_missing,
     get_logged_user,
     get_session,
@@ -214,5 +215,19 @@ def test_update_puts_changes_to_the_named_document():
         "PUT",
         f"{BASE_URL}/api/resource/Item/85123A",
         json={"disabled": 1},
+        timeout=INSERT_TIMEOUT_SECONDS,
+    )
+
+
+def test_cancel_calls_erpnexts_cancel_method():
+    session = Mock()
+    session.request.return_value = fake_response(body={"message": None})
+
+    cancel(session, BASE_URL, "Sales Invoice", "ACC-SINV-2026-00001")
+
+    session.request.assert_called_once_with(
+        "POST",
+        f"{BASE_URL}/api/method/frappe.client.cancel",
+        json={"doctype": "Sales Invoice", "name": "ACC-SINV-2026-00001"},
         timeout=INSERT_TIMEOUT_SECONDS,
     )
