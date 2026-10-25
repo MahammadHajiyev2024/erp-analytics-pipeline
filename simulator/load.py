@@ -19,10 +19,12 @@ from dotenv import load_dotenv
 from bootstrap.customers import build_customers
 from bootstrap.invoices import purchase_invoice_docs, sales_invoice_docs
 from bootstrap.load_invoices import INVOICE_FIELDS, bootstrap_session, chronological, prepare
-from bootstrap.load_master import customer_docs, load_suppliers
+from bootstrap.load_master import customer_docs, item_docs, load_suppliers
 from bootstrap.payments import MAX_DELAY_DAYS, payment_docs
-from common.erpnext import create_missing, list_values
+from bootstrap.products import load_categories
+from common.erpnext import create_missing, list_values, update
 from simulator.days import first_orders, simulate_day
+from simulator.successors import apply_successors, successor_products, successors
 
 ROOT = Path(__file__).resolve().parents[1]
 PURCHASE_PREFIX = "SIM "
@@ -80,6 +82,14 @@ def recent_simulated_invoices(session: requests.Session, base_url: str, day: dat
     return pd.DataFrame(rows, columns=INVOICE_FIELDS)
 
 
+def enabled_items(session: requests.Session, base_url: str, codes: list[str]) -> list[str]:
+    """Return which of the given items are still enabled in ERPNext."""
+    if not codes:
+        return []
+    filters = [["name", "in", codes], ["disabled", "=", 0]]
+    return sorted(row["name"] for row in list_values(session, base_url, "Item", ["name"], filters))
+
+
 def load_environment(test: bool) -> None:
     """Load .env, and with test, apply .env.test on top of it."""
     load_dotenv(ROOT / ".env")
@@ -94,22 +104,36 @@ def load_days(
     products: pd.DataFrame,
     days: list[date],
 ) -> None:
-    """Load each month's purchases, then each day's sales and returns and due payments."""
+    """Load each month's new products and purchases, then each day's sales and payments."""
     history_end = cleaned["invoice_date"].max().date()
     suppliers = load_suppliers()
     customers = build_customers(cleaned).set_index("customer")
     new_customer_invoices = first_orders(cleaned)
     months = sorted({day.replace(day=1) for day in days})
 
+    replaced = successors(cleaned, products, history_end, months[-1])
+    new_products = successor_products(products, replaced, *load_categories())
+    all_products = pd.concat([products, new_products])
+
     def simulate(day: date) -> pd.DataFrame:
-        return simulate_day(cleaned, day, history_end, new_customer_invoices)
+        rows = simulate_day(cleaned, day, history_end, new_customer_invoices)
+        return apply_successors(rows, replaced, day)
 
     for month_start in months:
         month = month_days(month_start, history_end)
-        logger.info("=== %s: purchases ===", f"{month_start:%Y-%m}")
+        logger.info("=== %s: products and purchases ===", f"{month_start:%Y-%m}")
+        launched = {code: new for code, (new, launch) in replaced.items() if launch <= month_start}
+        launched_products = new_products.loc[list(launched.values())].reset_index()
+        create_missing(
+            session, base_url, "Item", item_docs(launched_products, suppliers), "item_code"
+        )
+        for code in enabled_items(session, base_url, list(launched)):
+            update(session, base_url, "Item", code, {"disabled": 1})
+            logger.info("Item %s disabled, replaced by %s", code, launched[code])
+
         rows = pd.concat([simulate(day) for day in month])
         purchases = purchase_invoice_docs(
-            rows, products, suppliers, month[0], bill_prefix=PURCHASE_PREFIX
+            rows, all_products, suppliers, month[0], bill_prefix=PURCHASE_PREFIX
         )
         create_missing(session, base_url, "Purchase Invoice", purchases, "bill_no")
 
@@ -119,7 +143,7 @@ def load_days(
             create_missing(
                 session, base_url, "Customer", new_customer_docs(rows, customers), "customer_name"
             )
-            sales = sales_invoice_docs(rows, products)
+            sales = sales_invoice_docs(rows, all_products)
             create_missing(
                 session, base_url, "Sales Invoice", chronological(sales), "custom_source_invoice"
             )
