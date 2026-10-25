@@ -3,7 +3,7 @@ from datetime import date
 import pandas as pd
 
 from bootstrap.clean import GUEST_CUSTOMER
-from simulator.load import days_between, due_payments, month_days
+from simulator.load import days_between, due_payments, month_days, new_customer_docs
 
 HISTORY_END = date(2025, 12, 5)
 
@@ -57,3 +57,20 @@ def test_other_customers_pay_only_once_their_day_has_come():
 
 def test_no_invoices_means_no_payments():
     assert due_payments(make_invoices().iloc[0:0], date(2025, 12, 7)) == []
+
+
+def test_new_customers_copy_their_originals_segment():
+    rows = pd.DataFrame(
+        {
+            "customer": ["SIM-20251209-1-14911", "SIM-20251209-1-14911", "17850"],
+            "country": ["France", "France", "United Kingdom"],
+        }
+    )
+    customers = pd.DataFrame({"segment": ["Wholesale", "Retail"]}, index=["14911", "17850"])
+
+    docs = new_customer_docs(rows, customers)
+
+    assert len(docs) == 1
+    assert docs[0]["customer_name"] == "SIM-20251209-1-14911"
+    assert docs[0]["customer_group"] == "Wholesale"
+    assert docs[0]["territory"] == "France"
