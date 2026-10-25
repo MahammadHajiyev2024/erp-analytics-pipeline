@@ -20,8 +20,11 @@ new and changed data to extract every day (design decision 15).
   than skipped, by 5 percentage points for each year between the simulated day and its
   historical day. Prices stay as in the history, because item costs are fixed and higher
   prices would inflate margins.
-- **Source keys:** simulated invoices are identified by keys such as `SIM-20251209-0001`
-  (date and sequence), in the same `custom_source_invoice` field as historical invoices.
+- **Source keys:** simulated invoices are identified by keys such as
+  `SIM-20251209-1-536365`: the simulated day, the copy (1, or 2 for an invoice placed
+  twice), and the historical invoice it replays, in the same `custom_source_invoice` field
+  as historical invoices. A replayed return keeps its C number at the end
+  (`SIM-20251209-1-C536379`), so returns are recognized the same way as in the history.
 
 ## Payments
 
@@ -33,8 +36,9 @@ pay (bad debts) are out of scope.
 
 ## New customers
 
-When a replayed invoice was a customer's first-ever order in the history, it is given to
-a new customer instead, with the same country and segment and an ID such as `SIM-C00001`.
+When a replayed invoice was a customer's first-ever sale in the history, it is given to a
+new customer instead, with the order's country and the original's segment, and an ID such
+as `SIM-20251209-1-14911`, which ends with the customer it is modelled on.
 The customer's other replayed orders stay with the original customer. New customers
 therefore arrive at the historical rate and with the historical seasonality. Many new
 customers place only one order, which understates how often new Wholesale customers
@@ -43,25 +47,39 @@ return; acquisition figures are realistic, detailed retention analysis is simpli
 ## New products
 
 On the first day of each simulated month, about 10 products that sell that month, chosen
-by hash, are replaced by a successor: a new item with a code such as `85123A-N26`, the
-same category and supplier, and its own cost under the bootstrap's cost rule. From that
-day on, all of the original's replayed sales go to the successor, and the original is
-disabled in ERPNext. A successor sells exactly as its original did, which is realistic for
-category and revenue analysis but simplified for the performance of new products.
+by hash, are replaced by a successor: a new item with a code such as `85123A-N25` (the
+launch year), a description ending in "2025 RANGE", the same category, supplier, and
+typical price, and its own cost under the bootstrap's cost rule. From its launch month
+on, all of the original's replayed sales and purchases go to the successor, and the
+original is disabled in ERPNext. The choices depend only on the data and a hash, so every
+month's successors are recalculated in each run rather than stored. A successor sells
+exactly as its original did, which is realistic for category and revenue analysis but
+simplified for the performance of new products.
 
 ## Changes to existing records
 
-- **Segments:** on the first day of each simulated month, every customer's segment is
-  recalculated with the bootstrap's rule (median order value of the last 12 months, at
-  least £150 for Wholesale), and changed segments are updated in ERPNext. These are the
-  changes the SCD2 customer dimension keeps history for.
-- **Cancellations:** about 0.5% of simulated invoices, chosen by hash and never for the
-  Guest Customer, are cancelled the day after they are created, before any payment. The
-  pipeline must notice that a previously extracted invoice is no longer valid.
+- **Segments:** on the first simulated day of each month, every customer's segment is
+  recalculated with the bootstrap's rule (median net total of their submitted sales in
+  ERPNext over the last 12 months, at least £150 for Wholesale), and changed segments are
+  updated in ERPNext. Customers without orders in those 12 months keep their segment.
+  These are the changes the SCD2 customer dimension keeps history for. The first review
+  changes many customers at once, because the bootstrap's segments used each customer's
+  whole history.
+- **Cancellations:** about 0.5% of simulated sales invoices, chosen by hash and never
+  returns or Guest Customer orders, are cancelled by the next day's run, before any
+  payment. The pipeline must notice that a previously extracted invoice is no longer
+  valid.
 - **Discontinued products:** originals replaced by a successor are disabled (see above).
 
 Changes to customer countries, product renames without a successor, and edits to invoice
 lines are out of scope.
+
+## Purchases
+
+On the first simulated day of each month, MHG buys the whole month's simulated sales of
+each stock item plus 20%, at cost, under the bootstrap's purchase rule. Their supplier
+invoice numbers start with `SIM ` (such as `SIM 2025-12 Northern Candle Co.`), because
+December 2025 also has a historical purchase per supplier.
 
 ## Timing
 
@@ -71,8 +89,25 @@ simulated invoice), so the same command catches up after any gap: about ten mont
 first time, then one day per daily run. Like the bootstrap, each step only creates what
 is missing.
 
+## Running and verifying
+
+`uv run python -m simulator.run` is the daily command. It finds the latest simulated
+invoice in ERPNext, simulates every day from the next one up to yesterday, and then
+verifies the last 60 days, which covers every invoice whose payment status can have
+changed (payments arrive up to 50 days after an invoice). Days without sales leave no
+invoice behind and are simulated again by the next run, which creates nothing. The run
+loads as the bootstrap user, verifies as the read-only pipeline user, and exits with
+status 1 if the verification fails.
+
+Because the simulator is deterministic, `uv run python -m simulator.verify FIRST LAST`
+recalculates any range of simulated days and compares ERPNext with it: sales and returns
+(to £0.01), exactly the chosen cancellations, which invoices are settled or still open on
+the last day, each month's purchases per supplier, and successor products. Segment
+reviews depend on ERPNext's own data at review time and are not verified.
+
 ## Test environment
 
 The simulator is developed and tested against a separate ERPNext, started from the same
 compose file under the project name `mhg-erpnext-test` on port 8081, and restored from the
-master data backup. Test documents never reach the real books.
+master data backup. Test documents never reach the real books. The simulator commands
+take `--test` to load `.env.test` on top of `.env`, which points them to port 8081.
