@@ -100,6 +100,8 @@ the Administrator account.
    Supplier Group, and **Read**, **Write**, **Create**, and **Submit** on Sales Invoice,
    Purchase Invoice, and Payment Entry. Then tick it on the user's **Roles & Permissions** tab and clear the
    cache (`bench --site frontend clear-cache`).
+   The simulator also needs **Cancel** on Sales Invoice, to cancel invoices the day after
+   they were created.
 3. **API key:** on the **Settings** tab, click **Generate Keys**. Copy the key and secret
    into `ERPNEXT_BOOTSTRAP_API_KEY` and `ERPNEXT_BOOTSTRAP_API_SECRET` in `.env`.
 4. **Check:** `uv run python -m extractors.erpnext` must also print
@@ -135,32 +137,7 @@ Done once as Administrator, before loading invoices.
    field labelled **Source Invoice**, with **Unique** and **No Copy** ticked. ERPNext
    stores it as `custom_source_invoice`. It holds each invoice's number from the source
    data, so the load can tell which invoices exist, and every invoice can be traced back
-   to its source ro
-
-
-## 8. Test environment
-
-Experiments and simulator development run against a separate ERPNext on port 8081, so test
-documents never reach the real books. It uses the same compose file under its own project
-name, with its own containers and volumes. `.env.test` (not committed) contains
-`ERPNEXT_PORT=8081` and `ERPNEXT_URL=http://localhost:8081`.
-
-```bash
-docker compose -p mhg-erpnext-test -f docker/erpnext/compose.yaml --env-file .env --env-file .env.test up -d
-```
-
-When `create-site` has exited, restore a database backup and give the test site the real
-site's encryption key, so that the restored API keys can be decrypted:
-
-```bash
-docker compose -p mhg-erpnext-test -f docker/erpnext/compose.yaml --env-file .env --env-file .env.test cp data/backups/BACKUP-database.sql.gz backend:/tmp/
-docker compose -p mhg-erpnext-test -f docker/erpnext/compose.yaml --env-file .env --env-file .env.test exec -T backend bench --site frontend restore /tmp/BACKUP-database.sql.gz --db-root-username root --db-root-password ROOT_PASSWORD --force
-docker compose -p mhg-erpnext-test -f docker/erpnext/compose.yaml --env-file .env --env-file .env.test exec -T backend bench --site frontend set-config encryption_key KEY_FROM_SITE_CONFIG_BACKUP
-docker compose -p mhg-erpnext-test -f docker/erpnext/compose.yaml --env-file .env --env-file .env.test restart backend queue-short queue-long scheduler frontend
-```
-
-Always pass `-p mhg-erpnext-test`: without it, the commands act on the real ERPNext. To
-throw the test environment away, use `down -v` with the same `-p`.
+   to its source rows.
 
 ## Troubleshooting
 
@@ -190,11 +167,3 @@ cache:
 ```bash
 docker compose -f docker/erpnext/compose.yaml --env-file .env exec backend bench --site frontend clear-cache
 ```
-
-**`bench restore` hangs without any output.** It is waiting for an answer to a question
-that is not shown. Run it with `exec -T` and `--force`: `-T` makes it fail instead of
-waiting, and `--force` skips the questions.
-
-**`502 Bad Gateway` after restarting `backend`.** nginx in `frontend` looks up the
-backend's address only when it starts, and a restarted container can get a new one.
-Restart `frontend` after `backend`.
