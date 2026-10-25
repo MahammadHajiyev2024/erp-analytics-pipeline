@@ -14,7 +14,7 @@ from datetime import date, datetime, timedelta
 
 import pandas as pd
 
-from bootstrap.clean import is_cancellation
+from bootstrap.clean import GUEST_CUSTOMER, is_cancellation
 from bootstrap.load_invoices import prepare
 
 REPLAY_STEP = timedelta(weeks=52)
@@ -68,11 +68,25 @@ def varied_quantity(quantity: int, *parts: object) -> int:
     return int(math.copysign(varied, quantity))
 
 
-def simulate_day(cleaned: pd.DataFrame, day: date, history_end: date) -> pd.DataFrame:
+def first_orders(cleaned: pd.DataFrame) -> frozenset[str]:
+    """Return the invoice numbers of every known customer's first sale in the history."""
+    sales = cleaned[~is_cancellation(cleaned) & (cleaned["customer"] != GUEST_CUSTOMER)]
+    first = sales.sort_values(["invoice_date", "invoice"]).drop_duplicates("customer")
+    return frozenset(first["invoice"])
+
+
+def simulate_day(
+    cleaned: pd.DataFrame,
+    day: date,
+    history_end: date,
+    new_customer_invoices: frozenset[str] = frozenset(),
+) -> pd.DataFrame:
     """Return the simulated sales and return rows for one day, in the clean data's columns.
 
     Invoice keys look like SIM-20251209-1-536365: the simulated day, the copy number, and
-    the historical invoice that is replayed.
+    the historical invoice that is replayed. Invoices in new_customer_invoices, the first
+    orders of historical customers, go to a new customer with an ID such as
+    SIM-20251209-1-14911, which ends with the customer it is modelled on.
     """
     template = template_day(day, history_end)
     years = replay_years(day, history_end)
@@ -85,9 +99,10 @@ def simulate_day(cleaned: pd.DataFrame, day: date, history_end: date) -> pd.Data
             for number, line in enumerate(lines.itertuples(index=False), start=1):
                 posted = datetime.combine(day, line.invoice_date.time())
                 quantity = varied_quantity(line.quantity, day, invoice, copy, number)
-                simulated.append(
-                    line._asdict() | {"invoice": key, "invoice_date": posted, "quantity": quantity}
-                )
+                changes = {"invoice": key, "invoice_date": posted, "quantity": quantity}
+                if invoice in new_customer_invoices:
+                    changes["customer"] = f"SIM-{day:%Y%m%d}-{copy}-{line.customer}"
+                simulated.append(line._asdict() | changes)
 
     result = pd.DataFrame(simulated, columns=cleaned.columns)
     return result.astype({"invoice": "string", "invoice_date": "datetime64[us]"})

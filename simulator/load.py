@@ -16,12 +16,13 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
+from bootstrap.customers import build_customers
 from bootstrap.invoices import purchase_invoice_docs, sales_invoice_docs
 from bootstrap.load_invoices import INVOICE_FIELDS, bootstrap_session, chronological, prepare
-from bootstrap.load_master import load_suppliers
+from bootstrap.load_master import customer_docs, load_suppliers
 from bootstrap.payments import MAX_DELAY_DAYS, payment_docs
 from common.erpnext import create_missing, list_values
-from simulator.days import simulate_day
+from simulator.days import first_orders, simulate_day
 
 ROOT = Path(__file__).resolve().parents[1]
 PURCHASE_PREFIX = "SIM "
@@ -39,6 +40,25 @@ def month_days(day: date, history_end: date) -> list[date]:
     month_start = day.replace(day=1)
     month_end = (pd.Timestamp(month_start) + pd.offsets.MonthEnd(0)).date()
     return days_between(max(month_start, history_end + timedelta(days=1)), month_end)
+
+
+def new_customer_docs(rows: pd.DataFrame, customers: pd.DataFrame) -> list[dict]:
+    """Return a Customer for each new customer in the rows, with its original's segment.
+
+    customers must be indexed by customer ID; new customer IDs end with the original's ID.
+    """
+    new = rows[rows["customer"].str.startswith("SIM-")].drop_duplicates("customer")
+    if new.empty:
+        return []
+    originals = new["customer"].str.split("-").str[-1]
+    profiles = pd.DataFrame(
+        {
+            "customer": new["customer"].to_numpy(),
+            "country": new["country"].to_numpy(),
+            "segment": customers.loc[originals, "segment"].to_numpy(),
+        }
+    )
+    return customer_docs(profiles)
 
 
 def due_payments(invoices: pd.DataFrame, day: date) -> list[dict]:
@@ -77,12 +97,17 @@ def load_days(
     """Load each month's purchases, then each day's sales and returns and due payments."""
     history_end = cleaned["invoice_date"].max().date()
     suppliers = load_suppliers()
+    customers = build_customers(cleaned).set_index("customer")
+    new_customer_invoices = first_orders(cleaned)
     months = sorted({day.replace(day=1) for day in days})
+
+    def simulate(day: date) -> pd.DataFrame:
+        return simulate_day(cleaned, day, history_end, new_customer_invoices)
 
     for month_start in months:
         month = month_days(month_start, history_end)
         logger.info("=== %s: purchases ===", f"{month_start:%Y-%m}")
-        rows = pd.concat([simulate_day(cleaned, day, history_end) for day in month])
+        rows = pd.concat([simulate(day) for day in month])
         purchases = purchase_invoice_docs(
             rows, products, suppliers, month[0], bill_prefix=PURCHASE_PREFIX
         )
@@ -90,7 +115,11 @@ def load_days(
 
         for day in [day for day in days if day.replace(day=1) == month_start]:
             logger.info("=== %s: sales ===", day)
-            sales = sales_invoice_docs(simulate_day(cleaned, day, history_end), products)
+            rows = simulate(day)
+            create_missing(
+                session, base_url, "Customer", new_customer_docs(rows, customers), "customer_name"
+            )
+            sales = sales_invoice_docs(rows, products)
             create_missing(
                 session, base_url, "Sales Invoice", chronological(sales), "custom_source_invoice"
             )

@@ -5,6 +5,7 @@ import pandas as pd
 from bootstrap.clean import is_cancellation
 from simulator.days import (
     copies,
+    first_orders,
     replay_years,
     simulate_day,
     stable_fraction,
@@ -72,3 +73,27 @@ def test_simulated_returns_are_still_cancellations():
     rows = make_rows({"invoice": "SIM-20251209-1-C574600"}, {"invoice": "SIM-20251209-1-574585"})
 
     assert is_cancellation(rows).tolist() == [True, False]
+
+
+def test_first_orders_are_each_customers_earliest_sale():
+    rows = make_rows(
+        {"invoice": "500001", "customer": "17850", "invoice_date": pd.Timestamp("2024-01-05")},
+        {"invoice": "500002", "customer": "17850", "invoice_date": pd.Timestamp("2024-02-05")},
+        {"invoice": "C500003", "customer": "12346", "invoice_date": pd.Timestamp("2024-01-01")},
+        {"invoice": "500004", "customer": "12346", "invoice_date": pd.Timestamp("2024-03-01")},
+        {"invoice": "500005", "customer": "Guest Customer"},
+    )
+
+    assert first_orders(rows) == {"500001", "500004"}
+
+
+def test_first_orders_go_to_new_customers_modelled_on_the_original():
+    # Neither invoice is skipped on 9 December 2025, so both appear in the result.
+    rows = make_rows({"invoice": "574587", "customer": "14911"}, {"invoice": "574586"})
+
+    simulated = simulate_day(rows, date(2025, 12, 9), HISTORY_END, frozenset({"574587"}))
+
+    sources = simulated["invoice"].str.split("-").str[-1]
+    customers = dict(zip(sources, simulated["customer"], strict=True))
+    assert customers["574586"] == "17850"
+    assert customers["574587"] == "SIM-20251209-1-14911"
