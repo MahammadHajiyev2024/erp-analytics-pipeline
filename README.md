@@ -4,7 +4,7 @@
 
 End-to-end analytics pipeline: ERPNext REST API → Airflow → Databricks medallion lakehouse → dbt → Power BI.
 
-> **Status:** Work in progress. Phases 0 to 5 are complete: requirements, architecture, environment setup, continuous integration, the ERPNext source system, and the bootstrap of two years of verified historical data. Next is Phase 6 (Business Activity Simulator).
+> **Status:** Work in progress. Phases 0 to 6 are complete: requirements, architecture, environment setup, continuous integration, the ERPNext source system, two years of verified historical data, and a business activity simulator that keeps the company trading daily. Next is Phase 7 (Databricks Lakehouse Setup).
 
 ## Overview
 

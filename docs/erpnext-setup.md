@@ -166,4 +166,11 @@ cache:
 
 ```bash
 docker compose -f docker/erpnext/compose.yaml --env-file .env exec backend bench --site frontend clear-cache
+
 ```
+**`AuthenticationError` or `401` although the keys in `.env` are correct.** The terminal
+holds older values of the same variables, and python-dotenv never overrides variables that
+already exist. Check with `Test-Path env:ERPNEXT_API_KEY` (it should print False). A
+common cause is the VS Code setting `python.terminal.useEnvFile`, which loads `.env` into
+every terminal when it opens; set it to `false`, because the code loads `.env` itself.
+Then close all terminals and open new ones.

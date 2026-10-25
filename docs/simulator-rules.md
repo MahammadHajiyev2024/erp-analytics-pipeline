@@ -105,6 +105,10 @@ recalculates any range of simulated days and compares ERPNext with it: sales and
 the last day, each month's purchases per supplier, and successor products. Segment
 reviews depend on ERPNext's own data at review time and are not verified.
 
+The first run caught up from 6 December 2025 to 23 October 2026 in about seven hours. The
+full simulated period passed verification: 18,887 invoices and returns, 68 cancellations,
+and, on 23 October 2026, 2,321 open invoices worth £1,210,259.29, of which 345 overdue.
+
 ## Test environment
 
 The simulator is developed and tested against a separate ERPNext, started from the same
