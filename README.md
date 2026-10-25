@@ -105,8 +105,8 @@ is described in [ERPNext setup](docs/erpnext-setup.md).
 - [x] Phase 3: Continuous integration
 - [x] Phase 4: Source system (ERPNext)
 - [x] Phase 5: Bootstrap historical data
-- [ ] Phase 6: Business activity simulator
-- [ ] Phase 7: Databricks lakehouse setup
+- [x] Phase 6: Business activity simulator
+- [x] Phase 7: Databricks lakehouse setup
 - [ ] Phase 8: Extraction and bronze layer
 - [ ] Phase 9: dbt silver and gold layers
 - [ ] Phase 10: Airflow orchestration
