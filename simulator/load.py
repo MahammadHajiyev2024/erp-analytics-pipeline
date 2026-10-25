@@ -22,7 +22,8 @@ from bootstrap.load_invoices import INVOICE_FIELDS, bootstrap_session, chronolog
 from bootstrap.load_master import customer_docs, item_docs, load_suppliers
 from bootstrap.payments import MAX_DELAY_DAYS, payment_docs
 from bootstrap.products import load_categories
-from common.erpnext import create_missing, list_values, update
+from common.erpnext import cancel, create_missing, list_values, update
+from simulator.changes import reviewed_segments, segment_changes, to_cancel
 from simulator.days import first_orders, simulate_day
 from simulator.successors import apply_successors, successor_products, successors
 
@@ -90,6 +91,33 @@ def enabled_items(session: requests.Session, base_url: str, codes: list[str]) ->
     return sorted(row["name"] for row in list_values(session, base_url, "Item", ["name"], filters))
 
 
+def review_segments(session: requests.Session, base_url: str, review_day: date) -> None:
+    """Update the segment of every customer whose last 12 months of orders call for it."""
+    window = [
+        (review_day - timedelta(days=365)).isoformat(),
+        (review_day - timedelta(days=1)).isoformat(),
+    ]
+    filters = [["docstatus", "=", 1], ["is_return", "=", 0], ["posting_date", "between", window]]
+    orders = list_values(session, base_url, "Sales Invoice", ["customer", "net_total"], filters)
+    groups = list_values(session, base_url, "Customer", ["name", "customer_group"])
+    current = {row["name"]: row["customer_group"] for row in groups}
+    reviewed = reviewed_segments(pd.DataFrame(orders, columns=["customer", "net_total"]))
+    changes = segment_changes(current, reviewed)
+    for customer, group in sorted(changes.items()):
+        update(session, base_url, "Customer", customer, {"customer_group": group})
+    logger.info("Segment review on %s: %d customers changed", review_day, len(changes))
+
+
+def cancel_invoices(session: requests.Session, base_url: str, keys: list[str]) -> None:
+    """Cancel the invoices with the given source keys that are still submitted."""
+    if not keys:
+        return
+    filters = [["docstatus", "=", 1], ["custom_source_invoice", "in", keys]]
+    for row in list_values(session, base_url, "Sales Invoice", ["name"], filters):
+        cancel(session, base_url, "Sales Invoice", row["name"])
+        logger.info("Sales Invoice %s cancelled", row["name"])
+
+
 def load_environment(test: bool) -> None:
     """Load .env, and with test, apply .env.test on top of it."""
     load_dotenv(ROOT / ".env")
@@ -104,7 +132,11 @@ def load_days(
     products: pd.DataFrame,
     days: list[date],
 ) -> None:
-    """Load each month's new products and purchases, then each day's sales and payments."""
+    """Load each month's products, segment review, and purchases, then each day's activity.
+
+    A day's activity is its sales and returns, the cancellations of the previous day's
+    chosen invoices, and the payments that fall due.
+    """
     history_end = cleaned["invoice_date"].max().date()
     suppliers = load_suppliers()
     customers = build_customers(cleaned).set_index("customer")
@@ -131,6 +163,8 @@ def load_days(
             update(session, base_url, "Item", code, {"disabled": 1})
             logger.info("Item %s disabled, replaced by %s", code, launched[code])
 
+        review_segments(session, base_url, month[0])
+
         rows = pd.concat([simulate(day) for day in month])
         purchases = purchase_invoice_docs(
             rows, all_products, suppliers, month[0], bill_prefix=PURCHASE_PREFIX
@@ -147,6 +181,9 @@ def load_days(
             create_missing(
                 session, base_url, "Sales Invoice", chronological(sales), "custom_source_invoice"
             )
+            previous = day - timedelta(days=1)
+            if previous > history_end:
+                cancel_invoices(session, base_url, to_cancel(simulate(previous)))
             invoices = recent_simulated_invoices(session, base_url, day)
             payments = due_payments(invoices, day)
             create_missing(session, base_url, "Payment Entry", payments, "reference_no")
