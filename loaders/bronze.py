@@ -59,3 +59,42 @@ def load_customers_to_bronze(volume_path: str) -> None:
     with get_connection() as conn, conn.cursor() as cursor:
         cursor.execute(CUSTOMER_TABLE_DDL)
         cursor.execute(copy_sql)
+
+
+ITEM_TABLE_DDL = """
+CREATE TABLE IF NOT EXISTS bronze.erpnext_item (
+    name STRING,
+    item_code STRING,
+    item_name STRING,
+    item_group STRING,
+    stock_uom STRING,
+    disabled BIGINT,
+    is_stock_item BIGINT,
+    is_sales_item BIGINT,
+    is_purchase_item BIGINT,
+    standard_rate DOUBLE,
+    valuation_rate DOUBLE,
+    last_purchase_rate DOUBLE,
+    end_of_life STRING,
+    creation STRING,
+    modified STRING,
+    _ingested_at STRING,
+    _source STRING,
+    _batch_id STRING
+)
+USING DELTA;
+"""
+
+
+def load_items_to_bronze(volume_path: str) -> None:
+    """Ensure bronze.erpnext_item Delta table exists and load via COPY INTO."""
+    copy_sql = f"""
+    COPY INTO bronze.erpnext_item
+    FROM '{volume_path}'
+    FILEFORMAT = JSON
+    FORMAT_OPTIONS ('multiline' = 'false');
+    """
+
+    with get_connection() as conn, conn.cursor() as cursor:
+        cursor.execute(ITEM_TABLE_DDL)
+        cursor.execute(copy_sql)
