@@ -129,3 +129,12 @@ flexible but loses the correlations between customers, products, and seasons.
 - **JSON Lines Representation:** Preserves the exact nested payloads returned by the ERPNext REST API until dbt flattens and types them in the silver layer.
 **Alternative:** Direct row-by-row `INSERT` statements over SQL, which is slow for large datasets (over 1M rows), consumes daily quotas, and provides no raw file archive.
 **Implementation Note (SDK vs SQL Connector):**Volume uploads use the Databricks SDK (`WorkspaceClient.files.upload`) rather than SQL `PUT` commands. The SDK uploads directly via the Databricks control plane without requiring the SQL warehouse to be running, preserving the Free Edition daily compute quota. The warehouse is started only when executing `COPY INTO` via `databricks-sql-connector`.
+
+**Update (Phase 8):** Bronze tables store each record whole, as a `VARIANT` column `raw`,
+read with `FILEFORMAT = TEXT` and `parse_json`, plus `name`, `modified`, `docstatus` and the
+metadata columns taken out with `get_json_object` for deduplication. Typed columns failed
+on ERPNext documents: schema inference typed nested child tables (`items`, `taxes`)
+differently from the declared columns, and a daily batch can infer different types again.
+Storing the record untyped keeps bronze exactly as received; silver types and flattens it.
+Landing files are uploaded with the Databricks SDK (`WorkspaceClient.files.upload`), which
+does not need the SQL warehouse running.
