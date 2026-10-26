@@ -50,36 +50,33 @@ CREATE TABLE IF NOT EXISTS bronze.erpnext_item (
 USING DELTA;
 """
 
-SALES_INVOICE_TABLE_DDL = """
-CREATE TABLE IF NOT EXISTS bronze.erpnext_sales_invoice (
+VARIANT_TABLE_DDL = """
+CREATE TABLE IF NOT EXISTS {table} (
     name STRING,
-    customer STRING,
-    customer_name STRING,
-    posting_date STRING,
-    posting_time STRING,
-    due_date STRING,
-    docstatus BIGINT,
-    is_return BIGINT,
-    return_against STRING,
-    custom_source_invoice STRING,
-    currency STRING,
-    conversion_rate DOUBLE,
-    total_qty DOUBLE,
-    net_total DOUBLE,
-    total_taxes_and_charges DOUBLE,
-    grand_total DOUBLE,
-    outstanding_amount DOUBLE,
-    status STRING,
-    company STRING,
-    items STRING,
-    taxes STRING,
-    creation STRING,
     modified STRING,
-    _ingested_at STRING,
+    docstatus INT,
+    raw VARIANT,
+    _ingested_at TIMESTAMP,
     _source STRING,
     _batch_id STRING
 )
-USING DELTA;
+"""
+
+VARIANT_COPY_INTO = """
+COPY INTO {table}
+FROM (
+    SELECT
+        get_json_object(value, '$.name') AS name,
+        get_json_object(value, '$.modified') AS modified,
+        CAST(get_json_object(value, '$.docstatus') AS INT) AS docstatus,
+        parse_json(value) AS raw,
+        CAST(get_json_object(value, '$._ingested_at') AS TIMESTAMP) AS _ingested_at,
+        get_json_object(value, '$._source') AS _source,
+        get_json_object(value, '$._batch_id') AS _batch_id
+    FROM '{volume_path}'
+)
+FILEFORMAT = TEXT
+
 """
 
 
@@ -131,15 +128,21 @@ def load_items_to_bronze(volume_path: str) -> None:
         cursor.execute(copy_sql)
 
 
-def load_sales_invoices_to_bronze(volume_path: str) -> None:
-    """Ensure bronze.erpnext_sales_invoice Delta table exists and load via COPY INTO."""
-    copy_sql = f"""
-    COPY INTO bronze.erpnext_sales_invoice
-    FROM '{volume_path}'
-    FILEFORMAT = JSON
-    FORMAT_OPTIONS ('multiline' = 'false');
-    """
+def load_variant_to_bronze(table: str, volume_path: str) -> int:
+    """Load raw JSON Lines into a bronze table: whole record as VARIANT, keys as columns.
 
+    Returns the number of rows inserted. COPY INTO skips files it has already loaded,
+    so a rerun inserts 0.
+    """
     with get_connection() as conn, conn.cursor() as cursor:
-        cursor.execute(SALES_INVOICE_TABLE_DDL)
-        cursor.execute(copy_sql)
+        cursor.execute(VARIANT_TABLE_DDL.format(table=table))
+        cursor.execute(VARIANT_COPY_INTO.format(table=table, volume_path=volume_path))
+        result = cursor.fetchone()
+    inserted = result[1] if result else 0
+    logger.info("COPY INTO %s inserted %d rows from %s", table, inserted, volume_path)
+    return inserted
+
+
+def load_sales_invoices_to_bronze(volume_path: str) -> int:
+    """Load Sales Invoice landing files into bronze.erpnext_sales_invoice."""
+    return load_variant_to_bronze("bronze.erpnext_sales_invoice", volume_path)
