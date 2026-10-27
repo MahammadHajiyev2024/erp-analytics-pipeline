@@ -1,4 +1,4 @@
-"""Databricks bronze layer loader using SDK volume upload and COPY INTO."""
+"""Loaders for the Databricks bronze layer: upload landing files, then COPY INTO."""
 
 import logging
 from pathlib import Path
@@ -10,46 +10,6 @@ from dotenv import load_dotenv
 from common.databricks import get_connection
 
 logger = logging.getLogger(__name__)
-
-CUSTOMER_TABLE_DDL = """
-CREATE TABLE IF NOT EXISTS bronze.erpnext_customer (
-    name STRING,
-    customer_name STRING,
-    customer_group STRING,
-    territory STRING,
-    disabled BIGINT,
-    creation STRING,
-    modified STRING,
-    _ingested_at STRING,
-    _source STRING,
-    _batch_id STRING
-)
-USING DELTA;
-"""
-
-ITEM_TABLE_DDL = """
-CREATE TABLE IF NOT EXISTS bronze.erpnext_item (
-    name STRING,
-    item_code STRING,
-    item_name STRING,
-    item_group STRING,
-    stock_uom STRING,
-    disabled BIGINT,
-    is_stock_item BIGINT,
-    is_sales_item BIGINT,
-    is_purchase_item BIGINT,
-    standard_rate DOUBLE,
-    valuation_rate DOUBLE,
-    last_purchase_rate DOUBLE,
-    end_of_life STRING,
-    creation STRING,
-    modified STRING,
-    _ingested_at STRING,
-    _source STRING,
-    _batch_id STRING
-)
-USING DELTA;
-"""
 
 VARIANT_TABLE_DDL = """
 CREATE TABLE IF NOT EXISTS {table} (
@@ -77,7 +37,6 @@ FROM (
     FROM '{volume_path}'
 )
 FILEFORMAT = TEXT
-
 """
 
 
@@ -118,16 +77,6 @@ def upload_to_volume(
     return target_path
 
 
-def load_customers_to_bronze(volume_path: str) -> int:
-    """Load Customer landing files into bronze.erpnext_customer."""
-    return load_variant_to_bronze("bronze.erpnext_customer", volume_path)
-
-
-def load_items_to_bronze(volume_path: str) -> int:
-    """Load Item landing files into bronze.erpnext_item."""
-    return load_variant_to_bronze("bronze.erpnext_item", volume_path)
-
-
 def load_variant_to_bronze(table: str, volume_path: str) -> int:
     """Load raw JSON Lines into a bronze table: whole record as VARIANT, keys as columns.
 
@@ -143,6 +92,21 @@ def load_variant_to_bronze(table: str, volume_path: str) -> int:
     return inserted
 
 
+def load_customers_to_bronze(volume_path: str) -> int:
+    """Load Customer landing files into bronze.erpnext_customer."""
+    return load_variant_to_bronze("bronze.erpnext_customer", volume_path)
+
+
+def load_items_to_bronze(volume_path: str) -> int:
+    """Load Item landing files into bronze.erpnext_item."""
+    return load_variant_to_bronze("bronze.erpnext_item", volume_path)
+
+
 def load_sales_invoices_to_bronze(volume_path: str) -> int:
     """Load Sales Invoice landing files into bronze.erpnext_sales_invoice."""
     return load_variant_to_bronze("bronze.erpnext_sales_invoice", volume_path)
+
+
+def load_purchase_invoices_to_bronze(volume_path: str) -> int:
+    """Load Purchase Invoice landing files into bronze.erpnext_purchase_invoice."""
+    return load_variant_to_bronze("bronze.erpnext_purchase_invoice", volume_path)

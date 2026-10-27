@@ -47,6 +47,7 @@ def test_rerun_of_loaded_file_inserts_nothing(monkeypatch):
         (bronze.load_customers_to_bronze, "bronze.erpnext_customer"),
         (bronze.load_items_to_bronze, "bronze.erpnext_item"),
         (bronze.load_sales_invoices_to_bronze, "bronze.erpnext_sales_invoice"),
+        (bronze.load_purchase_invoices_to_bronze, "bronze.erpnext_purchase_invoice"),
     ],
 )
 def test_each_doctype_loads_into_its_own_variant_table(monkeypatch, loader, table):
