@@ -100,32 +100,14 @@ def upload_to_volume(
     return target_path
 
 
-def load_customers_to_bronze(volume_path: str) -> None:
-    """Ensure bronze.erpnext_customer Delta table exists and load new files via COPY INTO."""
-    copy_sql = f"""
-    COPY INTO bronze.erpnext_customer
-    FROM '{volume_path}'
-    FILEFORMAT = JSON
-    FORMAT_OPTIONS ('multiline' = 'false');
-    """
-
-    with get_connection() as conn, conn.cursor() as cursor:
-        cursor.execute(CUSTOMER_TABLE_DDL)
-        cursor.execute(copy_sql)
+def load_customers_to_bronze(volume_path: str) -> int:
+    """Load Customer landing files into bronze.erpnext_customer."""
+    return load_variant_to_bronze("bronze.erpnext_customer", volume_path)
 
 
-def load_items_to_bronze(volume_path: str) -> None:
-    """Ensure bronze.erpnext_item Delta table exists and load via COPY INTO."""
-    copy_sql = f"""
-    COPY INTO bronze.erpnext_item
-    FROM '{volume_path}'
-    FILEFORMAT = JSON
-    FORMAT_OPTIONS ('multiline' = 'false');
-    """
-
-    with get_connection() as conn, conn.cursor() as cursor:
-        cursor.execute(ITEM_TABLE_DDL)
-        cursor.execute(copy_sql)
+def load_items_to_bronze(volume_path: str) -> int:
+    """Load Item landing files into bronze.erpnext_item."""
+    return load_variant_to_bronze("bronze.erpnext_item", volume_path)
 
 
 def load_variant_to_bronze(table: str, volume_path: str) -> int:
