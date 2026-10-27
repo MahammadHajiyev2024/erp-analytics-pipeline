@@ -2,6 +2,7 @@
 
 from loaders.bronze import (
     load_customers_to_bronze,
+    load_fred_exchange_rates_to_bronze,
     load_items_to_bronze,
     load_purchase_invoices_to_bronze,
     load_sales_invoices_to_bronze,
@@ -11,6 +12,7 @@ from loaders.bronze import (
 
 __all__ = [
     "load_customers_to_bronze",
+    "load_fred_exchange_rates_to_bronze",
     "load_items_to_bronze",
     "load_purchase_invoices_to_bronze",
     "load_sales_invoices_to_bronze",
