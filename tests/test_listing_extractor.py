@@ -1,5 +1,6 @@
 """Tests for the generic list-only extractor: keyset pagination, overlap, watermark."""
 
+import importlib
 import json
 from datetime import UTC, datetime, timedelta
 
@@ -182,3 +183,27 @@ def test_incremental_run_rereads_overlap_and_adds_new_rows(run):
     lines = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     assert names(lines) == ["a", "new"]
     assert get_watermark(DOCTYPE, state_file=run.state_file) == "2026-01-01 10:05:00.000000"
+
+
+@pytest.mark.parametrize(
+    ("module", "function", "doctype"),
+    [
+        ("extractors.erpnext.customer", "extract_customers", "Customer"),
+        ("extractors.erpnext.item", "extract_items", "Item"),
+        (
+            "extractors.erpnext.stock_ledger_entry",
+            "extract_stock_ledger_entries",
+            "Stock Ledger Entry",
+        ),
+    ],
+)
+def test_wrappers_pass_their_doctype(monkeypatch, module, function, doctype):
+    wrapper_module = importlib.import_module(module)
+    calls = []
+    monkeypatch.setattr(
+        wrapper_module, "run_list_extraction", lambda d, **kwargs: calls.append((d, kwargs))
+    )
+
+    getattr(wrapper_module, function)(max_records=5)
+
+    assert calls == [(doctype, {"max_records": 5})]

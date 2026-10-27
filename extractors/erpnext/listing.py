@@ -17,6 +17,7 @@ page, and deep pages cost the same as the first.
 Rows read twice are removed in silver, which keeps the latest version of each `name`.
 """
 
+import argparse
 import json
 import logging
 import os
@@ -222,3 +223,21 @@ def run_list_extraction(
         "Extracted %d %s (%d newer than the watermark) to %s", written, doctype, newer, file_path
     )
     return file_path
+
+
+def cli(doctype: str) -> None:
+    """Command-line entry point shared by the list-only extractors."""
+    parser = argparse.ArgumentParser(description=f"Extract {doctype} records to the landing folder")
+    parser.add_argument("--max-records", type=int, help="stop after this many records (trial)")
+    parser.add_argument("--output-dir", type=Path, help="default: data/landing/<doctype>")
+    parser.add_argument("--watermark-path", type=Path, default=DEFAULT_STATE_FILE)
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    path = run_list_extraction(
+        doctype,
+        output_dir=args.output_dir,
+        watermark_path=args.watermark_path,
+        max_records=args.max_records,
+    )
+    print(path)

@@ -2,34 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 
-from extractors.erpnext.item import extract_items
 from loaders.bronze import load_items_to_bronze
-
-
-def test_extract_items_pagination() -> None:
-    """extract_items handles multi-page responses with deterministic sorting."""
-    mock_session = MagicMock()
-
-    page_1 = {"data": [{"name": "10001", "modified": "2026-10-25 10:00:00"}]}
-    page_2 = {"data": []}
-
-    mock_resp1 = MagicMock()
-    mock_resp1.json.return_value = page_1
-    mock_resp2 = MagicMock()
-    mock_resp2.json.return_value = page_2
-
-    mock_session.get.side_effect = [mock_resp1, mock_resp2]
-
-    records = extract_items(
-        session=mock_session,
-        base_url="http://localhost:8080",
-        watermark="2026-10-24 00:00:00",
-        page_size=1,
-    )
-
-    assert len(records) == 1
-    assert records[0]["name"] == "10001"
-    assert mock_session.get.call_count == 2
 
 
 @patch("loaders.bronze.get_connection")
