@@ -110,3 +110,8 @@ def load_sales_invoices_to_bronze(volume_path: str) -> int:
 def load_purchase_invoices_to_bronze(volume_path: str) -> int:
     """Load Purchase Invoice landing files into bronze.erpnext_purchase_invoice."""
     return load_variant_to_bronze("bronze.erpnext_purchase_invoice", volume_path)
+
+
+def load_stock_ledger_entries_to_bronze(volume_path: str) -> int:
+    """Load Stock Ledger Entry landing files into bronze.erpnext_stock_ledger_entry."""
+    return load_variant_to_bronze("bronze.erpnext_stock_ledger_entry", volume_path)
