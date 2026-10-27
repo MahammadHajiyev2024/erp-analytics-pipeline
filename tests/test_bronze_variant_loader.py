@@ -2,6 +2,8 @@
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from loaders import bronze
 
 VOLUME_FILE = "/Volumes/erp_analytics/bronze/landing/sales_invoice/test.jsonl"
@@ -37,3 +39,22 @@ def test_rerun_of_loaded_file_inserts_nothing(monkeypatch):
     mock_cursor(monkeypatch, result=(0, 0, 0))
 
     assert bronze.load_sales_invoices_to_bronze(VOLUME_FILE) == 0
+
+
+@pytest.mark.parametrize(
+    ("loader", "table"),
+    [
+        (bronze.load_customers_to_bronze, "bronze.erpnext_customer"),
+        (bronze.load_items_to_bronze, "bronze.erpnext_item"),
+        (bronze.load_sales_invoices_to_bronze, "bronze.erpnext_sales_invoice"),
+    ],
+)
+def test_each_doctype_loads_into_its_own_variant_table(monkeypatch, loader, table):
+    cursor = mock_cursor(monkeypatch, result=(10, 10, 0))
+
+    assert loader(VOLUME_FILE) == 10
+
+    ddl, copy_into = [call.args[0] for call in cursor.execute.call_args_list]
+    assert f"CREATE TABLE IF NOT EXISTS {table} (" in ddl
+    assert "raw VARIANT" in ddl
+    assert f"COPY INTO {table}\n" in copy_into
