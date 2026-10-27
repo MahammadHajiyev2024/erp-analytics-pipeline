@@ -78,7 +78,7 @@ The pipeline reads ERPNext as a dedicated, read-only user (see design decision 7
 5. **Check:** run the connection check from the repository root:
 
    ```bash
-   uv run python -m extractors.erpnext
+   uv run python -m common.erpnext
    ```
 
    It must connect as `pipeline@mhg.local`, read Sales Invoice and Customer, and be refused
@@ -104,7 +104,7 @@ the Administrator account.
    they were created.
 3. **API key:** on the **Settings** tab, click **Generate Keys**. Copy the key and secret
    into `ERPNEXT_BOOTSTRAP_API_KEY` and `ERPNEXT_BOOTSTRAP_API_SECRET` in `.env`.
-4. **Check:** `uv run python -m extractors.erpnext` must also print
+4. **Check:** `uv run python -m common.erpnext` must also print
    `Bootstrap user: bootstrap@mhg.local`.
 
 These standard roles give more than the bootstrap strictly needs, but only business
