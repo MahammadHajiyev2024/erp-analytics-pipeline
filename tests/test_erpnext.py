@@ -231,3 +231,14 @@ def test_cancel_calls_erpnexts_cancel_method():
         json={"doctype": "Sales Invoice", "name": "ACC-SINV-2026-00001"},
         timeout=INSERT_TIMEOUT_SECONDS,
     )
+
+
+def test_session_retries_reads_but_not_writes():
+    session = get_session("key", "secret")
+    retry = session.get_adapter("http://localhost:8080").max_retries
+
+    assert retry.total == 5
+    assert retry.allowed_methods == frozenset({"GET"})
+    assert {429, 500, 502, 503, 504} <= set(retry.status_forcelist)
+    assert retry.raise_on_status is False
+    assert session.headers["Authorization"] == "token key:secret"

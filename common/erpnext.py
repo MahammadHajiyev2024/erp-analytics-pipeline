@@ -8,6 +8,8 @@ from urllib.parse import quote
 
 import requests
 from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 TIMEOUT_SECONDS = 30
 # Creating a large document (such as a purchase invoice with hundreds of lines) can take
@@ -21,6 +23,15 @@ RETRY_BASE_SECONDS = 2
 # request can safely be sent again.
 TEMPORARY_ERRORS = ("QueryDeadlockError", "QueryTimeoutError")
 
+# Reads are retried on network errors and temporary server errors; writes go through send().
+READ_RETRY = Retry(
+    total=5,
+    backoff_factor=2,
+    status_forcelist=(429, 500, 502, 503, 504),
+    allowed_methods=frozenset({"GET"}),
+    raise_on_status=False,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -29,9 +40,16 @@ class ERPNextError(Exception):
 
 
 def get_session(api_key: str, api_secret: str) -> requests.Session:
-    """Return a session authenticated with an ERPNext API key and secret."""
+    """Return a session authenticated with an ERPNext API key and secret.
+
+    GET requests are retried up to 5 times on timeouts, connection errors, and 429/5xx
+    answers, with growing waits (up to about a minute in total).
+    """
     session = requests.Session()
     session.headers["Authorization"] = f"token {api_key}:{api_secret}"
+    adapter = HTTPAdapter(max_retries=READ_RETRY)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
     return session
 
 
