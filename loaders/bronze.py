@@ -11,26 +11,45 @@ from common.databricks import get_connection
 
 logger = logging.getLogger(__name__)
 
-VARIANT_TABLE_DDL = """
+# Key columns copied out of each raw record: column name -> (SQL type, JSON path).
+# Every bronze table has its source's key columns, then raw VARIANT and the metadata.
+ERPNEXT_KEYS: dict[str, tuple[str, str]] = {
+    "name": ("STRING", "$.name"),
+    "modified": ("STRING", "$.modified"),
+    "docstatus": ("INT", "$.docstatus"),
+}
+FRED_KEYS: dict[str, tuple[str, str]] = {
+    "series_id": ("STRING", "$.series_id"),
+    "observation_date": ("STRING", "$.date"),
+}
+
+
+def variant_table_ddl(table: str, keys: dict[str, tuple[str, str]]) -> str:
+    """Return CREATE TABLE IF NOT EXISTS for a bronze table with the given key columns."""
+    key_columns = "".join(f"    {column} {sql_type},\n" for column, (sql_type, _) in keys.items())
+    return f"""
 CREATE TABLE IF NOT EXISTS {table} (
-    name STRING,
-    modified STRING,
-    docstatus INT,
-    raw VARIANT,
+{key_columns}    raw VARIANT,
     _ingested_at TIMESTAMP,
     _source STRING,
     _batch_id STRING
 )
 """
 
-VARIANT_COPY_INTO = """
+
+def variant_copy_into(table: str, volume_path: str, keys: dict[str, tuple[str, str]]) -> str:
+    """Return COPY INTO that loads JSON Lines: keys as columns, the whole record as VARIANT."""
+    key_selects = ""
+    for column, (sql_type, path) in keys.items():
+        expression = f"get_json_object(value, '{path}')"
+        if sql_type != "STRING":
+            expression = f"CAST({expression} AS {sql_type})"
+        key_selects += f"        {expression} AS {column},\n"
+    return f"""
 COPY INTO {table}
 FROM (
     SELECT
-        get_json_object(value, '$.name') AS name,
-        get_json_object(value, '$.modified') AS modified,
-        CAST(get_json_object(value, '$.docstatus') AS INT) AS docstatus,
-        parse_json(value) AS raw,
+{key_selects}        parse_json(value) AS raw,
         CAST(get_json_object(value, '$._ingested_at') AS TIMESTAMP) AS _ingested_at,
         get_json_object(value, '$._source') AS _source,
         get_json_object(value, '$._batch_id') AS _batch_id
@@ -77,15 +96,17 @@ def upload_to_volume(
     return target_path
 
 
-def load_variant_to_bronze(table: str, volume_path: str) -> int:
+def load_variant_to_bronze(
+    table: str, volume_path: str, keys: dict[str, tuple[str, str]] = ERPNEXT_KEYS
+) -> int:
     """Load raw JSON Lines into a bronze table: whole record as VARIANT, keys as columns.
 
     Returns the number of rows inserted. COPY INTO skips files it has already loaded,
     so a rerun inserts 0.
     """
     with get_connection() as conn, conn.cursor() as cursor:
-        cursor.execute(VARIANT_TABLE_DDL.format(table=table))
-        cursor.execute(VARIANT_COPY_INTO.format(table=table, volume_path=volume_path))
+        cursor.execute(variant_table_ddl(table, keys))
+        cursor.execute(variant_copy_into(table, volume_path, keys))
         result = cursor.fetchone()
     inserted = result[1] if result else 0
     logger.info("COPY INTO %s inserted %d rows from %s", table, inserted, volume_path)
@@ -115,3 +136,8 @@ def load_purchase_invoices_to_bronze(volume_path: str) -> int:
 def load_stock_ledger_entries_to_bronze(volume_path: str) -> int:
     """Load Stock Ledger Entry landing files into bronze.erpnext_stock_ledger_entry."""
     return load_variant_to_bronze("bronze.erpnext_stock_ledger_entry", volume_path)
+
+
+def load_fred_exchange_rates_to_bronze(volume_path: str) -> int:
+    """Load FRED exchange rate landing files into bronze.fred_exchange_rates."""
+    return load_variant_to_bronze("bronze.fred_exchange_rates", volume_path, keys=FRED_KEYS)
