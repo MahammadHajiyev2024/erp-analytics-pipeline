@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.errors import NotFound
 from dotenv import load_dotenv
 
 from common.databricks import get_connection
@@ -85,8 +86,10 @@ def upload_to_volume(
     volume_dir: str = "/Volumes/erp_analytics/bronze/landing/customer",
     client: WorkspaceClient | None = None,
 ) -> str:
-    """Upload a local file to a Databricks Unity Catalog volume.
+    """Upload a local file to a Databricks Unity Catalog volume, never overwriting.
 
+    A file already in the volume with the same size is treated as an earlier upload of
+    the same batch (a retried run) and skipped; a different size raises ValueError.
     Returns the target volume path.
     """
     load_dotenv()
@@ -94,9 +97,24 @@ def upload_to_volume(
         client = WorkspaceClient()
 
     target_path = f"{volume_dir.rstrip('/')}/{local_file.name}"
-    with open(local_file, "rb") as f:
-        client.files.upload(target_path, f, overwrite=True)
+    local_size = local_file.stat().st_size
 
+    try:
+        existing = client.files.get_metadata(target_path)
+    except NotFound:
+        existing = None
+
+    if existing is not None:
+        if existing.content_length == local_size:
+            logger.info("%s already uploaded (%d bytes), skipping", target_path, local_size)
+            return target_path
+        raise ValueError(
+            f"{target_path} already exists with {existing.content_length} bytes, "
+            f"local file has {local_size}; refusing to overwrite"
+        )
+
+    with open(local_file, "rb") as f:
+        client.files.upload(target_path, f, overwrite=False)
     return target_path
 
 
