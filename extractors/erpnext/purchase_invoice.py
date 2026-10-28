@@ -15,7 +15,9 @@ def run_purchase_invoice_extraction(
     max_records: int | None = None,
 ) -> Path | None:
     """Extract Purchase Invoices modified since the watermark."""
-    return run_document_extraction(DOCTYPE, output_dir, watermark_path, max_records)
+    return run_document_extraction(
+        DOCTYPE, output_dir=output_dir, watermark_path=watermark_path, max_records=max_records
+    )
 
 
 if __name__ == "__main__":
