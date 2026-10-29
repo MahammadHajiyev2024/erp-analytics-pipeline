@@ -27,3 +27,11 @@ CREATE SCHEMA IF NOT EXISTS gold;
 
 CREATE VOLUME IF NOT EXISTS bronze.landing
   COMMENT 'Landing volume for raw JSON Lines extractor dumps';
+```
+
+## 4. Bronze table shape
+
+Every ERPNext bronze table shares the same untyped shape (`name`, `modified`, `docstatus`, a
+`VARIANT` column `raw`, plus the `_ingested_at` / `_source` / `_batch_id` metadata columns); see
+[design decision 16](design-decisions.md#16-ingestion-to-bronze-via-landing-volume-and-copy-into)
+for why and how it is loaded with `COPY INTO`.

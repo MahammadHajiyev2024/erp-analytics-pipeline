@@ -68,7 +68,7 @@ stakeholders, using clearly defined KPIs reported in GBP and USD.
 | Area | Decision |
 |---|---|
 | Data freshness | Daily batch updates |
-| History | November 2011 first; extended to the full dataset (December 2009 to December 2011) once the pipeline works |
+| History | One month loaded and verified first, then the full two-year history (28 November 2023 to 5 December 2025, after the date shift) |
 | Currency | Books in GBP; reporting in GBP and USD |
 | Access | Sales views can be restricted by territory (row-level security) |
 | Infrastructure | Runs on a 16 GB laptop with free services (Databricks Free Edition, Power BI Desktop) |

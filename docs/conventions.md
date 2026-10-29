@@ -52,5 +52,7 @@ Rules for naming everything in the project, so names are predictable and self-ex
 ## Git
 
 - Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/):
-  `feat:`, `fix:`, `docs:`, `test:`, `build:`, `ci:`, `chore:`, `style:`, `refactor:`:.
-  - Branch names describe the work: `feature/customer-extractor`, `fix/pagination-limit`.
+  `feat:`, `fix:`, `docs:`, `test:`, `build:`, `ci:`, `chore:`, `style:`, `refactor:`.
+- Branch names describe the work, prefixed by its kind: `feature/`, `fix/`, `docs/`,
+  `chore/`, `refactor/`, `ci/` — for example `feature/customer-extractor`,
+  `fix/pagination-limit`.

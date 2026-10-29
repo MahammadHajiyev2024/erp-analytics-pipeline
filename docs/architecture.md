@@ -1,3 +1,8 @@
+# Architecture
+
+How data flows through the platform, and the rules each layer follows. The diagram is in the
+[README](../README.md#architecture).
+
 ## Design principles
 
 **Separation of concerns:** every component has one responsibility, so each can be understood,
@@ -11,23 +16,6 @@ tested, and changed independently.
   and dbt models.
 - **Code and configuration:** credentials and settings live in environment variables, not in code.
 - **Transformation and presentation:** dbt builds the data; Power BI presents it.
-
-
-| | Bronze | Silver | Gold |
-|---|---|---|---|
-| **Definition** | Raw data, exactly as received from the sources | Cleaned and standardized data | Business-ready data |
-| **Objective** | Traceability, debugging, and reprocessing | Prepare reliable data for modeling | Serve reporting and analytics |
-| **Object type** | Delta tables | Delta tables (dbt models) | Delta tables (dbt models and snapshots) |
-| **Load method** | Incremental append, using `modified` watermarks | Incremental merge (insert new, update changed) | Rebuilt each run; snapshots track history |
-| **Transformations** | None, apart from metadata columns (`_ingested_at`, `_source`, `_batch_id`) | Typing, deduplication, flattening line items, removing drafts and cancellations, standardizing codes, enriching (product categories) | Integration, currency conversion, business rules (segments, margins), aggregation |
-| **Data modeling** | None (same shape as the source) | One model per source entity | Star schema (facts and dimensions) |
-| **Tools** | Python extractors and loaders | dbt | dbt |
-| **Audience** | Data engineers | Data engineers and analysts | Analysts and business users |
-
-# Architecture
-
-How data flows through the platform, and the rules each layer follows. The diagram is in the
-[README](../README.md#architecture).
 
 ## Data flow
 
