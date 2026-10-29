@@ -61,7 +61,7 @@ FILEFORMAT = TEXT
 
 def upload_to_volume(
     local_file: Path,
-    volume_dir: str = "/Volumes/erp_analytics/bronze/landing/customer",
+    volume_dir: str,
     client: WorkspaceClient | None = None,
 ) -> str:
     """Upload a local file to a Databricks Unity Catalog volume, never overwriting.

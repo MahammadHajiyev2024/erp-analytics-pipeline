@@ -43,6 +43,15 @@ def test_upload_skips_file_already_uploaded(tmp_path: Path) -> None:
     mock_client.files.upload.assert_not_called()
 
 
+def test_upload_to_volume_requires_volume_dir(tmp_path: Path) -> None:
+    """volume_dir has no default, so a forgotten argument fails loudly, not silently."""
+    test_file = tmp_path / "item_test.jsonl"
+    test_file.write_text('{"name": "A"}\n', encoding="utf-8")
+
+    with pytest.raises(TypeError):
+        upload_to_volume(test_file)
+
+
 def test_upload_refuses_different_file_with_same_name(tmp_path: Path) -> None:
     """A different file under an existing name raises instead of overwriting."""
     test_file = tmp_path / "item_test.jsonl"
