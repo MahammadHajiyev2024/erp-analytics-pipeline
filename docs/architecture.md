@@ -42,3 +42,25 @@ tested, and changed independently.
 
 **Rule of thumb:** enrichment (adding descriptive attributes) belongs in silver; business logic
 (rules the business could change, such as segments and margins) belongs in gold.
+
+## Time zones
+
+Three clocks matter to this pipeline, and they are not the same:
+
+- **ERPNext's `modified` column** is naive local time in the server's system time zone
+  (Europe/London), confirmed with `bench execute frappe.utils.get_system_timezone` and
+  `frappe.utils.now` — even though the container OS itself runs UTC. Watermarks are always
+  compared against this column in its own naive local time, never converted.
+- **Pipeline metadata** (`_ingested_at`, landing file names) is UTC.
+- **Local log timestamps**, printed by Python's default logging, follow whichever machine runs
+  the extractor.
+
+UK clocks going back in October make the hour 01:00–02:00 happen twice in `modified`'s local
+time; `to_utc_timestamp(modified, 'Europe/London')` is ambiguous for that hour and must not be
+used to order changes within it. The pipeline avoids the ambiguity rather than resolving it: the
+2-hour incremental overlap (see
+[design decision 17](design-decisions.md#17-keyset-pagination-with-a-watermark-overlap-for-incremental-extraction))
+is comfortably wider than the repeated hour, so a row near the boundary is re-read rather than
+risk being skipped. On the 2026 change (25 October, 01:00–02:00 UK), no documents happened to be
+created in the repeated hour, so no data was actually at risk that time; the overlap stays in
+place regardless, for the next UK change (29 March 2027).
