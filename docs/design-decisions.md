@@ -77,11 +77,14 @@ to a parent company.
 
 ## 11. Staged historical load
 
-**Decision:** The bootstrap loads November 2011 first, then the full dataset once the
-pipeline is proven.
-**Why:** A fast first build on a 16 GB laptop, then real history for year-over-year and
-seasonal analysis.
-**Alternative:** Loading everything up front, which delays the first working pipeline.
+**Decision:** The bootstrap loaded one month first, verified it, then loaded and verified the
+full 26-month history (28 November 2023 to 5 December 2025) one month at a time, stopping at
+the first month that failed.
+**Why:** A fast first build on a 16 GB laptop proves the pipeline end to end before committing
+to the full load; loading month by month with a backup after each isolates a failure to one
+month instead of redoing everything.
+**Alternative:** Loading everything up front, which delays the first working pipeline and
+makes a failure harder to isolate.
 
 ## 12. Power BI semantic model as the analytical layer
 

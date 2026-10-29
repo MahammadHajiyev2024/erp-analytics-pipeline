@@ -96,7 +96,7 @@ raw data were duplicates or non-sales codes), and 228,688 Guest Customer rows.
 
 ## Purchases and stock
 
-- **Suppliers:** about 10 invented suppliers, each supplying one or two categories.
+- **Suppliers:** 9 invented suppliers, each supplying one or two categories.
 - **Restocking:** MHG buys each item's sales for the coming month plus a 20% safety buffer,
   at the item's cost. The first purchase is on the first day of the history (covering the
   rest of November 2023); after that, purchases happen on the first day of each month.
@@ -141,8 +141,8 @@ YYYY-MM`, in three steps, each creating only what is missing:
 
 Cancelled documents count as existing too, so a deliberately cancelled document is never
 recreated automatically (with a unique source key, it could not be recreated anyway).
-API requests do not get the defaults thatERPNext's screens fill in, so every invoice sends
-its rates, warehouse, tax rows,due date, and, on stock lines of returns, the item's cost as incoming rate.
+API requests do not get the defaults that ERPNext's screens fill in, so every invoice sends
+its rates, warehouse, tax rows, due date, and, on stock lines of returns, the item's cost as incoming rate.
 Temporary database collisions with ERPNext's background jobs are retried with increasing waits.
 
 November 2025 loaded 9 purchase invoices, 3,109 sales invoices and returns (81,051 lines),
@@ -164,8 +164,3 @@ month in order and stops at the first month that fails. It was loaded in four ba
 with a database backup copied off the container after each, and every month passed
 verification. Large purchase invoices need up to 120 seconds to create, so inserts use a
 longer timeout than reads.
-
-## Still to confirm
-
-- The segment threshold, the category keywords, and the cost ratios, set when the
-  cleaning code is written.
