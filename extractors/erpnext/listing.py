@@ -31,7 +31,6 @@ from dotenv import load_dotenv
 from requests import Session
 
 from common.erpnext import ERPNextError, error_detail, get_session
-from extractors.erpnext.documents import slug
 from extractors.watermark import DEFAULT_STATE_FILE, get_watermark, update_watermark
 
 logger = logging.getLogger(__name__)
@@ -40,6 +39,11 @@ LIST_TIMEOUT_SECONDS = 120
 OVERLAP = timedelta(hours=2)
 PROGRESS_EVERY = 50_000
 MODIFIED_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+
+
+def slug(doctype: str) -> str:
+    """Return the snake_case name used for files, folders, and _source ("sales_invoice")."""
+    return doctype.lower().replace(" ", "_")
 
 
 def overlap_start(watermark: str | None, overlap: timedelta = OVERLAP) -> str | None:

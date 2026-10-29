@@ -1,10 +1,26 @@
-"""Generic extractor for ERPNext documents with child tables (one GET per document)."""
+"""Generic extractor for ERPNext documents with child tables (one GET per document).
+
+The list API returns no child tables, so each document is fetched on its own. Which
+documents to fetch comes from a list of names and `modified` values, paged and windowed
+exactly as in the list-only extractor (see `listing.py`):
+
+- **Full load** (no watermark yet): lists names by `name`, the primary key. The watermark
+  becomes the newest `modified` that existed when the run started.
+- **Incremental load:** lists names by (`modified`, `name`), starting OVERLAP before the
+  watermark, and moves the watermark to the newest `modified` in that list.
+
+The watermark always comes from the list, never from the fetched documents. Fetching can
+take hours, and a document changed after the list was taken must be read again by the
+next run; a watermark taken from the fetched documents could pass over it.
+
+Documents read twice are removed in silver, which keeps the latest version of each `name`.
+"""
 
 import json
 import logging
 import os
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -12,50 +28,19 @@ from dotenv import load_dotenv
 from requests import Session
 
 from common.erpnext import TIMEOUT_SECONDS, ERPNextError, error_detail, get_session
+from extractors.erpnext.listing import (
+    OVERLAP,
+    iter_records,
+    iter_records_by_name,
+    latest_modified,
+    overlap_start,
+    slug,
+)
 from extractors.watermark import DEFAULT_STATE_FILE, get_watermark, update_watermark
 
 logger = logging.getLogger(__name__)
-PAGE_SIZE = 1000
 PROGRESS_EVERY = 5000
-
-
-def slug(doctype: str) -> str:
-    """Return the snake_case name used for files, folders, and _source ("sales_invoice")."""
-    return doctype.lower().replace(" ", "_")
-
-
-def fetch_document_names(
-    session: Session,
-    base_url: str,
-    doctype: str,
-    watermark: str | None = None,
-    page_size: int = PAGE_SIZE,
-) -> list[str]:
-    """Return names of documents modified after the watermark, paginating deterministically."""
-    endpoint = f"{base_url.rstrip('/')}/api/resource/{doctype}"
-    filters = [[doctype, "modified", ">", watermark]] if watermark else []
-
-    names: list[str] = []
-    limit_start = 0
-    while True:
-        params: dict[str, Any] = {
-            "fields": json.dumps(["name", "modified"]),
-            "order_by": "modified asc, name asc",
-            "limit_start": limit_start,
-            "limit_page_length": page_size,
-        }
-        if filters:
-            params["filters"] = json.dumps(filters)
-
-        response = session.get(endpoint, params=params, timeout=TIMEOUT_SECONDS)
-        if not response.ok:
-            raise ERPNextError(f"Listing {doctype} failed: {error_detail(response)}")
-
-        batch = response.json().get("data", [])
-        names.extend(row["name"] for row in batch)
-        limit_start += len(batch)
-        if len(batch) < page_size:
-            return names
+LIST_FIELDS = ("name", "modified")
 
 
 def fetch_document(session: Session, base_url: str, doctype: str, name: str) -> dict[str, Any]:
@@ -71,13 +56,17 @@ def run_document_extraction(
     doctype: str,
     output_dir: Path | None = None,
     watermark_path: Path = DEFAULT_STATE_FILE,
+    overlap: timedelta = OVERLAP,
     max_records: int | None = None,
 ) -> Path | None:
-    """Extract documents modified since the watermark to one JSON Lines file.
+    """Extract new and changed documents to one JSON Lines file; see the module docstring.
 
-    Each line is the document exactly as ERPNext returned it, plus _ingested_at,
-    _source, and _batch_id. The file is written as .part and renamed only when complete,
-    and the watermark moves only after that, so a failed run leaves nothing behind.
+    Each line is the document exactly as ERPNext returned it, plus _ingested_at, _source,
+    and _batch_id. The file is written as .part and renamed only when complete, and the
+    watermark moves only after that, so a failed run leaves nothing behind. If no listed
+    document is newer than the watermark (only the overlap would be re-read), nothing is
+    fetched and None is returned. A full load cut short by max_records keeps its file but
+    does not set the watermark.
     """
     load_dotenv()
     api_key = os.getenv("ERPNEXT_API_KEY")
@@ -91,13 +80,33 @@ def run_document_extraction(
     session = get_session(api_key, api_secret)
     watermark = get_watermark(doctype, state_file=watermark_path)
 
-    logger.info("Listing %s modified after %s...", doctype, watermark)
-    names = fetch_document_names(session, base_url, doctype, watermark=watermark)
-    if not names:
-        logger.info("No new or modified %s since %s", doctype, watermark)
-        return None
-    if max_records:
-        names = names[:max_records]
+    if watermark is None:
+        new_watermark = latest_modified(session, base_url, doctype)
+        if new_watermark is None:
+            logger.info("No %s documents", doctype)
+            return None
+        logger.info("Listing all %s by name (watermark will be %s)...", doctype, new_watermark)
+        refs = list(iter_records_by_name(session, base_url, doctype, fields=LIST_FIELDS))
+    else:
+        since = overlap_start(watermark, overlap)
+        logger.info("Listing %s modified since %s (watermark %s)...", doctype, since, watermark)
+        refs = list(iter_records(session, base_url, doctype, since=since, fields=LIST_FIELDS))
+
+    truncated = bool(max_records) and len(refs) > max_records
+    if truncated:
+        refs = refs[:max_records]
+
+    if watermark is not None:
+        newer = sum(1 for ref in refs if ref["modified"] > watermark)
+        if newer == 0:
+            logger.info("No new or modified %s since %s", doctype, watermark)
+            return None
+        new_watermark = max(watermark, *(ref["modified"] for ref in refs))
+    else:
+        newer = len(refs)
+        if not refs:
+            logger.info("No %s documents", doctype)
+            return None
 
     batch_id = str(uuid.uuid4())
     ingested_at = datetime.now(UTC).isoformat()
@@ -106,23 +115,26 @@ def run_document_extraction(
     file_path = output_dir / f"{name_slug}_{run_timestamp}_{batch_id[:8]}.jsonl"
     part_path = file_path.with_suffix(".jsonl.part")
 
-    latest_modified = ""
     with open(part_path, "w", encoding="utf-8") as f:
-        for idx, name in enumerate(names, start=1):
-            doc = fetch_document(session, base_url, doctype, name)
+        for idx, ref in enumerate(refs, start=1):
+            doc = fetch_document(session, base_url, doctype, ref["name"])
             if not doc:
-                raise ERPNextError(f"Empty document returned for {doctype} {name}")
+                raise ERPNextError(f"Empty document returned for {doctype} {ref['name']}")
 
             doc["_ingested_at"] = ingested_at
             doc["_source"] = f"erpnext/{name_slug}"
             doc["_batch_id"] = batch_id
             f.write(json.dumps(doc) + "\n")
 
-            latest_modified = max(latest_modified, doc.get("modified", ""))
-            if idx % PROGRESS_EVERY == 0 or idx == len(names):
-                logger.info("Extracted %d / %d %s", idx, len(names), doctype)
+            if idx % PROGRESS_EVERY == 0 or idx == len(refs):
+                logger.info("Extracted %d / %d %s", idx, len(refs), doctype)
 
     part_path.replace(file_path)
-    update_watermark(doctype, latest_modified, len(names), ingested_at, state_file=watermark_path)
-    logger.info("Extracted %d %s to %s", len(names), doctype, file_path)
+    if watermark is None and truncated:
+        logger.warning("Full load stopped at %d documents; watermark not set", len(refs))
+    else:
+        update_watermark(doctype, new_watermark, len(refs), ingested_at, state_file=watermark_path)
+    logger.info(
+        "Extracted %d %s (%d newer than the watermark) to %s", len(refs), doctype, newer, file_path
+    )
     return file_path
