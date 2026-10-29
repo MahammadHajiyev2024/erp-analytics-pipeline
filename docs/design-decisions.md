@@ -122,7 +122,7 @@ hash-based variation keeps every run reproducible and idempotent.
 **Alternative:** Generating invoices from fitted statistical distributions, which is more
 flexible but loses the correlations between customers, products, and seasons.
 
-#### 16. Ingestion to bronze via landing volume and COPY INTO
+## 16. Ingestion to bronze via landing volume and COPY INTO
 **Decision:** Extractors write raw records as JSON Lines (.jsonl) files into a Databricks Unity Catalog Volume (`erp_analytics.bronze.landing`), which are then ingested into bronze Delta tables using Databricks `COPY INTO`.
 **Why:**
 - **Built-in Idempotency:** `COPY INTO` tracks loaded files natively, preventing duplicate ingestion if a pipeline batch is re-run.
@@ -141,3 +141,52 @@ differently from the declared columns, and a daily batch can infer different typ
 Storing the record untyped keeps bronze exactly as received; silver types and flattens it.
 Landing files are uploaded with the Databricks SDK (`WorkspaceClient.files.upload`), which
 does not need the SQL warehouse running.
+
+## 17. Keyset pagination with a watermark overlap for incremental extraction
+
+**Decision:** List and document extraction both page through ERPNext with keyset pagination
+instead of limit/offset: full loads page by `name` (the indexed primary key); incremental loads
+page by `(modified, name)`, starting a 2-hour overlap before the watermark. The watermark is the
+newest `modified` seen in the list, never a value taken from a fetched document.
+**Why:**
+- **Offset paging is unsafe on a changing table:** a row updated between two pages shifts every
+  row after it, so a page can skip one entirely; ERPNext's hourly stock reposting does this
+  continuously. Keyset pagination reads each page from a cursor on the last row seen, so an
+  update elsewhere cannot hide a row, and deep pages cost the same as the first.
+- **Sorting by `name` is far cheaper than by `modified`:** measured on 1.5 million Stock Ledger
+  Entries, a page sorted by `modified` cost about 11 seconds (no index, even filtered) against
+  0.1 seconds sorted by `name`. A full load by `name` took about 3 minutes, against an estimated
+  6.5 hours by `modified`.
+- **The overlap catches late-committing transactions and the UK clock change:** ERPNext stores
+  `modified` in local time (Europe/London), which repeats an hour when UK clocks go back in
+  October (see [Time zones](architecture.md#time-zones)). A 2-hour overlap is comfortably wider
+  than that hour, and also covers ordinary transaction-commit lag. A run where nothing is newer
+  than the watermark (only the overlap was re-read) writes or fetches nothing and leaves the
+  watermark unchanged.
+- **Document extraction's watermark comes from the list, not from the fetched document:**
+  fetching one document per GET can take hours for a large doctype, and a document that changes
+  after it was listed, but before its turn to be fetched, must still be read again next run. A
+  watermark taken from the fetched document's own `modified` could advance past it.
+- **A full load cut short by `--max-records` sets no watermark:** the unread remainder must
+  still be read as part of a first load next run, not skipped as already incremental.
+**Alternative:** Limit/offset pagination, simpler but unsafe on a table that changes during the
+run and slower with depth; adding an index on `(modified, name)` in ERPNext, rejected because it
+changes the source schema — a decision for whoever administers that instance, not the pipeline.
+
+## 18. Keep `incoming_rate` for cost of sales despite ERPNext's stock reposting
+
+**Decision:** ERPNext's background Repost Item Valuation queue was found silently rewriting old
+Stock Ledger Entries. No change was made to ERPNext, and `fact_sales.cost_amount_gbp` still comes
+from `qty × incoming_rate` on the Sales Invoice's own stock entries, not from
+`stock_value_difference`.
+**Why:** Comparing all 69,965 Stock Ledger Entries that reposting rewrote during verification,
+`qty_after_transaction`, `stock_value_difference`, `incoming_rate`, and `is_cancelled` never
+changed; only `valuation_rate` and `stock_value` changed, on 1,928 entries across 11 ordinary
+items (first changes in 2026, none at zero stock, a maximum rate change of £0.22 and a maximum
+stock value change of £36.32). The figures cost of sales depends on are unaffected, so tracing
+the cause to change a value that never moved was not worth it. A dbt test in silver compares
+`qty × incoming_rate` against `stock_value_difference` on each Sales Invoice's stock entries, so
+a future divergence is caught rather than assumed away.
+**Alternative:** Investigating and silencing the repost queue in ERPNext, which would change the
+source system to fix a quantity already confirmed stable; or computing cost of sales from
+`stock_value_difference` instead, unnecessary since `incoming_rate` never changed.
