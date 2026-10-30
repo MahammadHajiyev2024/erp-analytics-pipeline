@@ -1,0 +1,144 @@
+# Airflow orchestration for the ERP analytics pipeline (Phase 9).
+#
+# Deliberately independent from docker/erpnext/compose.yaml: these
+# containers reach ERPNext over its published host port, the same way every
+# extractor, pytest, and your browser already do -- not over ERPNext's
+# internal frappe_network. See docs/airflow-setup.md for why, and for the
+# host.docker.internal gotcha that follows from it.
+#
+# Run from the repository root:
+#   docker compose --env-file .env up -d
+#
+# (No -f needed: this is the only docker-compose.yml/compose.yaml at the
+# repository root, so bare `docker compose` commands act on this file.
+# ERPNext's compose file always needs an explicit -f, since it lives under
+# docker/erpnext/.)
+
+name: mhg-airflow
+
+x-airflow-common: &airflow-common
+  build:
+    context: .
+    dockerfile: docker/airflow/Dockerfile
+  env_file:
+    - .env
+  environment: &airflow-common-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/project/dags
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:${AIRFLOW_DB_PASSWORD:?Set AIRFLOW_DB_PASSWORD in .env}@postgres/airflow
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:?Set AIRFLOW_FERNET_KEY in .env}
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:?Set AIRFLOW_JWT_SECRET in .env}
+    AIRFLOW__API_AUTH__JWT_ISSUER: airflow
+    PYTHONPATH: /opt/airflow/project
+    # Inside a Linux container, "localhost" means the container itself, not
+    # the host -- this reaches ERPNext's published port on the host instead.
+    ERPNEXT_URL: http://host.docker.internal:${ERPNEXT_PORT:-8080}
+  volumes:
+    - ./dags:/opt/airflow/project/dags
+    - ./extractors:/opt/airflow/project/extractors
+    - ./loaders:/opt/airflow/project/loaders
+    - ./common:/opt/airflow/project/common
+    - ./simulator:/opt/airflow/project/simulator
+    - ./bootstrap:/opt/airflow/project/bootstrap
+    - ./data:/opt/airflow/project/data
+    - ./airflow/logs:/opt/airflow/logs
+  depends_on: &airflow-common-depends-on
+    postgres:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:16
+    networks:
+      - airflow_network
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD:?Set AIRFLOW_DB_PASSWORD in .env}
+      POSTGRES_DB: airflow
+    volumes:
+      - airflow-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: on-failure
+
+  airflow-init:
+    <<: *airflow-common
+    networks:
+      - airflow_network
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        airflow db migrate
+        airflow users create \
+          --username "${AIRFLOW_WWW_USER_USERNAME:-admin}" \
+          --password "${AIRFLOW_WWW_USER_PASSWORD:?Set AIRFLOW_WWW_USER_PASSWORD in .env}" \
+          --firstname Pipeline --lastname Admin --role Admin --email admin@mhg.local \
+        || true
+
+  airflow-apiserver:
+    <<: *airflow-common
+    networks:
+      - airflow_network
+    command: api-server
+    ports:
+      - "${AIRFLOW_PORT:-8082}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-scheduler:
+    <<: *airflow-common
+    networks:
+      - airflow_network
+    command: scheduler
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    networks:
+      - airflow_network
+    command: dag-processor
+    healthcheck:
+      test: ["CMD-SHELL", 'airflow jobs check --job-type DagProcessorJob --hostname "$${HOSTNAME}"']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+    depends_on:
+      <<: *airflow-common-depends-on
+      airflow-init:
+        condition: service_completed_successfully
+
+volumes:
+  airflow-db-data:
+
+networks:
+  airflow_network:
+    driver: bridge

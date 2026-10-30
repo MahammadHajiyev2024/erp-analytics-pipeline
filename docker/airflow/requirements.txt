@@ -1,0 +1,18 @@
+# Installed inside docker/airflow/Dockerfile (see that file for why there's
+# no --constraint). Versions mirror the floors in the main project's
+# pyproject.toml.
+#
+# databricks-sdk / databricks-sql-connector: loaders/bronze.py and
+#   common/databricks.py open their own Databricks connections directly --
+#   no apache-airflow-providers-databricks needed (see docs/airflow-setup.md).
+# python-dotenv: imported (harmlessly, as a no-op) by every extractor/loader
+#   module's own load_dotenv() call.
+# requests: the ERPNext/FRED extractors' HTTP client.
+# pandas / pyarrow: simulator.run transitively imports bootstrap.source,
+#   which reads data/interim/online_retail.parquet via pandas+pyarrow.
+databricks-sdk>=0.157.0
+databricks-sql-connector>=4.8.0
+python-dotenv>=1.2.4
+requests>=2.34.2
+pandas>=3.0.6
+pyarrow>=26.0.0
