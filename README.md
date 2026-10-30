@@ -4,7 +4,7 @@
 
 End-to-end analytics pipeline: ERPNext REST API → Airflow → Databricks medallion lakehouse → dbt → Power BI.
 
-> **Status:** Work in progress. Phases 0 to 6 are complete: requirements, architecture, environment setup, continuous integration, the ERPNext source system, two years of verified historical data, and a business activity simulator that keeps the company trading daily. Next is Phase 7 (Databricks Lakehouse Setup).
+> **Status:** Work in progress. Phases 0 to 9 are complete: requirements, architecture, environment setup, continuous integration, the ERPNext source system, two years of verified historical data, a business activity simulator that keeps the company trading daily, a Databricks lakehouse, the extraction/bronze layer, and Airflow orchestration. Next is Phase 10 (dbt Silver and Gold Layers).
 
 ## Overview
 
@@ -107,9 +107,9 @@ is described in [ERPNext setup](docs/erpnext-setup.md).
 - [x] Phase 5: Bootstrap historical data
 - [x] Phase 6: Business activity simulator
 - [x] Phase 7: Databricks lakehouse setup
-- [ ] Phase 8: Extraction and bronze layer
-- [ ] Phase 9: dbt silver and gold layers
-- [ ] Phase 10: Airflow orchestration
+- [x] Phase 8: Extraction and bronze layer
+- [x] Phase 9: Airflow orchestration
+- [ ] Phase 10: dbt silver and gold layers
 - [ ] Phase 11: Power BI reporting
 - [ ] Phase 12: Documentation and demo
 
