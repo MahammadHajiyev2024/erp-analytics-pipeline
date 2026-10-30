@@ -43,21 +43,47 @@ docker compose --env-file .env ps -a
 
 <http://localhost:8082> (or your `AIRFLOW_PORT`), log in with
 `AIRFLOW_WWW_USER_USERNAME` / `AIRFLOW_WWW_USER_PASSWORD`. `AIRFLOW__CORE__LOAD_EXAMPLES`
-is off, so the only DAG listed should be `_smoke_test`.
+is off, so the only DAG listed should be `erp_pipeline`.
 
-**New DAGs start paused** (Airflow's default) -- toggle `_smoke_test` on in the UI, or
-trigger a single manual run with the ▶ button without unpausing it.
+**New DAGs start paused** (Airflow's default) -- toggle `erp_pipeline` on in the UI once
+you're ready for it to run on its daily schedule, or trigger a single manual run with the
+▶ button without unpausing it.
 
-## 4. Verify
+## 4. Task graph
+
+```
+simulate_erpnext_activity
+        |
+   (fan out to 6 independent source pairs, run in parallel)
+        |
+  customer        item         sales_invoice   purchase_invoice  stock_ledger_entry  fred_fx
+  extract->load  extract->load  extract->load    extract->load      extract->load   extract->load
+        \_____________\_____________|_______________|__________________/______________/
+                                     |
+                           dbt_build_stub   (default trigger_rule: all_success)
+                                     |
+                       notify_pipeline_status  (trigger_rule: all_done)
+```
+
+`simulate_erpnext_activity` runs `python -m simulator.run` against the real ERPNext (no
+`--test`). The 6 source pairs then run in parallel, each independent (different doctype,
+different bronze table, its own key in `watermarks.json`). `dbt_build_stub` only runs once
+all six loads succeed -- a build against a bronze layer missing one source's data would be
+actively wrong, not just incomplete. `notify_pipeline_status` uses `trigger_rule="all_done"`
+so it still logs a one-line summary even if something upstream failed.
+
+## 5. Verify
 
 ```bash
 docker compose exec airflow-scheduler airflow dags list-import-errors
-docker compose exec airflow-scheduler airflow dags test _smoke_test 2026-01-01
+docker compose exec airflow-scheduler airflow dags test erp_pipeline 2026-01-01
 ```
 
-The first command should print nothing (no import errors). The second runs the DAG
-immediately, outside the schedule, and should show the `hello` task succeeding with its
-log line in the output.
+The first command should print nothing (no import errors). **The second actually runs the
+DAG against the real ERPNext and real Databricks bronze** -- it simulates a day of
+activity, extracts, and loads, not a no-op. Confirm the six source pairs ran in parallel in
+the Grid view, `dbt_build_stub` logged its placeholder message, and `notify_pipeline_status`
+logged a summary line.
 
 ## Why this is two Docker stacks, not one
 
@@ -120,5 +146,5 @@ airflow-init` to see the real error.
 
 ## What's next
 
-PR2 adds the real DAG (`dags/erp_pipeline.py`), removing `_smoke_test.py`. This doc gets
-the task graph and verification steps for that DAG at the same time.
+The `dbt_build_stub` task is a deliberate placeholder, logged as such -- it gets replaced
+once the dbt silver/gold phase exists.
