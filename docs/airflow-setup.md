@@ -1,7 +1,8 @@
 # Airflow setup
 
 How to bring up the project's Airflow stack (Phase 9 orchestration). This is a second,
-independent Docker stack alongside ERPNext's -- see design decision 6.
+independent Docker stack alongside ERPNext's -- see design decisions 6 and 19-21 in
+`design-decisions.md`.
 
 ## 1. Generate the secrets Airflow needs
 
@@ -87,6 +88,7 @@ logged a summary line.
 
 ## Why this is two Docker stacks, not one
 
+See [ADR 21](design-decisions.md#21-airflow-and-erpnext-as-two-independent-docker-stacks).
 Airflow's containers reach ERPNext over its **published host port**
 (`ERPNEXT_URL=http://localhost:8080` normally) -- exactly like every extractor, pytest,
 and your browser already do. They are deliberately *not* joined to ERPNext's internal
@@ -101,11 +103,13 @@ http://localhost:8080` works fine from your own terminal, this is almost always 
 
 ## Why Airflow isn't in `pyproject.toml`
 
-`apache-airflow` and its dependencies live only inside `docker/airflow/Dockerfile`,
-installed against Airflow's own constraints file. Resolving it into the main project's
-`uv.lock` risks forcing version conflicts with the main project's own pins for a service
-dependency, not a pipeline dependency. See the Dockerfile's own comments, and
-[ADR 6](design-decisions.md#6-airflow-for-orchestration-in-docker).
+`apache-airflow` and its dependencies live only inside `docker/airflow/Dockerfile`.
+Resolving it into the main project's `uv.lock` risks forcing version conflicts with the
+main project's own pins for a service dependency, not a pipeline dependency. See the
+Dockerfile's own comments, and
+[ADR 6](design-decisions.md#6-airflow-for-orchestration-in-docker) /
+[ADR 19](design-decisions.md#19-airflow-installed-only-in-its-own-docker-image-never-in-pyprojecttomluvlock).
+`LocalExecutor` + Postgres is [ADR 20](design-decisions.md#20-localexecutor-with-a-dedicated-postgres-metadata-database).
 
 ## Resource reminder (16 GB RAM laptop)
 

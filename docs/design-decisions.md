@@ -190,3 +190,65 @@ a future divergence is caught rather than assumed away.
 **Alternative:** Investigating and silencing the repost queue in ERPNext, which would change the
 source system to fix a quantity already confirmed stable; or computing cost of sales from
 `stock_value_difference` instead, unnecessary since `incoming_rate` never changed.
+
+## 19. Airflow installed only in its own Docker image, never in `pyproject.toml`/`uv.lock`
+
+**Decision:** `apache-airflow` is never added to `pyproject.toml`/`uv.lock`. `docker/airflow/Dockerfile`
+is based on the official `apache/airflow:<version>-python3.12` image, with a minimal extra pip
+layer (`databricks-sdk`, `databricks-sql-connector`, `python-dotenv`, `requests`, `pandas`,
+`pyarrow`) for the handful of packages the DAG's task callables need to import and call the
+existing extractors/loaders/simulator/bootstrap modules. No `apache-airflow-providers-databricks`
+either -- `loaders.upload_to_volume`/`loaders.load_*_to_bronze` already open their own Databricks
+connections from env vars, so a plain `@task` needs nothing Databricks-aware from Airflow. No
+`astronomer-cosmos` yet -- there's nothing to wrap until `dbt/` exists.
+**Why:** Resolving `apache-airflow` into the main project's own `uv.lock` risks forcing a version
+conflict with the main project's pins to satisfy a dependency of a service, not of pipeline code.
+Adding the Databricks provider would work against `CLAUDE.md`'s "DAGs only call them; no business
+logic inside DAG files" rule. This also means `uv sync --locked` in CI never changes, and no
+contributor running `uv sync` for normal dev work ever installs Airflow.
+**Alternative:** Resolving `apache-airflow`/providers into the main `uv.lock`, rejected for the
+conflict risk above.
+**Implementation note:** The extra pip layer was first installed with `--constraint` against
+Airflow's own constraints file, meant to stop it fighting Airflow's pinned dependencies. Dropped
+during Phase 9 PR1 verification: that file freezes exact versions of every package Airflow was
+tested against at release time, including ones Airflow doesn't actually depend on (`pandas`,
+`pyarrow`, `python-dotenv`, `databricks-sql-connector` are only imported by this project's own
+code, never by an installed provider) -- `pyproject.toml`'s floors had since moved past that
+frozen snapshot, so the constraint rejected an otherwise-fine install. Verified that dropping it
+still installs cleanly against Airflow's actual dependency ranges, which is the thing that
+actually needed protecting.
+
+## 20. LocalExecutor with a dedicated Postgres metadata database
+
+**Decision:** Run Airflow with `LocalExecutor` and a dedicated `postgres:16` metadata database (its
+own Compose service), not `SequentialExecutor`/SQLite, not `CeleryExecutor`/`KubernetesExecutor`.
+**Why:** `SequentialExecutor` runs one task at a time, ever -- it would collapse the DAG's
+deliberate 6-way parallel extract/load fan-out back into a sequential loop.
+`CeleryExecutor`/`KubernetesExecutor` need a message broker and separate long-lived worker
+containers, real infrastructure for distributing tasks across machines that one daily DAG with 6
+short tasks on one laptop doesn't need. `LocalExecutor` runs tasks as local subprocesses of the
+scheduler: genuine parallelism, no broker, no worker containers. Postgres is non-optional with
+`LocalExecutor` despite being single-machine: `LocalExecutor` updates multiple tasks' state at the
+same moment, and Airflow only supports SQLite with `SequentialExecutor`, where there's never more
+than one writer. The triggerer and Redis/Celery workers/Flower are skipped entirely -- nothing in
+this DAG defers, and nothing uses `CeleryExecutor`.
+**Alternative:** `SequentialExecutor` + SQLite, simplest but serializes the fan-out;
+`CeleryExecutor`/`KubernetesExecutor`, unneeded infrastructure at this scale.
+**Implementation note:** Adds roughly 1-1.5 GB idle RAM on top of ERPNext's own ~2-3 GB -- see the
+laptop resource agreement in `CLAUDE.md`.
+
+## 21. Airflow and ERPNext as two independent Docker stacks
+
+**Decision:** Airflow's root `docker-compose.yml` is a separate stack from
+`docker/erpnext/compose.yaml` -- different file, different `name:`, not joined to ERPNext's
+internal `frappe_network`. Airflow's containers reach ERPNext over its published host port
+(`http://host.docker.internal:${ERPNEXT_PORT:-8080}` from inside a container), exactly like every
+extractor, pytest, and a browser already do from outside Docker.
+**Why:** Joining Airflow to ERPNext's internal network would make DAG connectivity depend on
+ERPNext's internal service names -- an unrelated coupling to a system this stack doesn't own. The
+one consequence: inside a Linux container on Docker Desktop for Windows, `localhost` means the
+container itself, not the host machine, which is why `ERPNEXT_URL` needs the
+`host.docker.internal` override (documented in `docs/airflow-setup.md` as a first-time Docker
+gotcha).
+**Alternative:** One shared Compose file/network for both stacks, rejected for the coupling above;
+the two stacks are brought up/down independently.
