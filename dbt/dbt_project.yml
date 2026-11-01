@@ -1,0 +1,14 @@
+name: 'erp_analytics'
+version: '1.0.0'
+config-version: 2
+profile: 'erp_analytics'
+
+model-paths: ["models"]
+test-paths: ["tests"]
+snapshot-paths: ["snapshots"]
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  erp_analytics:
+    silver:
+      +materialized: incremental
