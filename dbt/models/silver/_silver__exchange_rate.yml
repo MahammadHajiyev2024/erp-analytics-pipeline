@@ -1,0 +1,49 @@
+version: 2
+
+models:
+  - name: stg_exchange_rate
+    columns:
+      - name: observation_date
+        tests:
+          - unique
+          - not_null
+
+unit_tests:
+  - name: test_holiday_placeholder_becomes_null
+    model: stg_exchange_rate
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'fred_exchange_rates')
+        format: sql
+        rows: |
+          select 'DEXUSUK' as series_id,
+                 '2024-01-01' as observation_date,
+                 parse_json('{"value":"."}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {observation_date: "2024-01-01", usd_per_gbp: null}
+
+  - name: test_later_ingestion_wins_when_no_modified_field_exists
+    model: stg_exchange_rate
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'fred_exchange_rates')
+        format: sql
+        rows: |
+          select 'DEXUSUK' as series_id,
+                 '2024-01-02' as observation_date,
+                 parse_json('{"value":"1.2650"}') as raw,
+                 cast('2024-01-03T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'DEXUSUK' as series_id,
+                 '2024-01-02' as observation_date,
+                 parse_json('{"value":"1.2699"}') as raw,
+                 cast('2024-01-10T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {observation_date: "2024-01-02", usd_per_gbp: 1.2699}

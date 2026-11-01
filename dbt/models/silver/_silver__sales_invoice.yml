@@ -1,0 +1,115 @@
+version: 2
+
+models:
+  - name: stg_sales_invoice
+    columns:
+      - name: sales_invoice_id
+        tests:
+          - not_null
+      - name: modified
+        tests:
+          - not_null
+
+unit_tests:
+  - name: test_tiebreak_picks_latest_regardless_of_status
+    model: stg_sales_invoice
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_sales_invoice')
+        format: sql
+        rows: |
+          select 'SINV-CANCEL' as name,
+                 '2025-11-15 08:26:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer":"17850","posting_date":"2025-11-15","due_date":"2025-12-15","is_return":0,"outstanding_amount":15.30,"grand_total":18.36,"items":[{"item_code":"85123A","qty":6,"net_amount":15.30,"incoming_rate":1.57}]}') as raw,
+                 cast('2025-11-15T08:26:00Z' as timestamp) as _ingested_at
+          union all
+          select 'SINV-CANCEL' as name,
+                 '2025-11-16 09:00:00.000000' as modified,
+                 2 as docstatus,
+                 parse_json('{"customer":"17850","posting_date":"2025-11-15","due_date":"2025-12-15","is_return":0,"outstanding_amount":15.30,"grand_total":18.36,"items":[{"item_code":"85123A","qty":6,"net_amount":15.30,"incoming_rate":1.57}]}') as raw,
+                 cast('2025-11-16T09:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {sales_invoice_id: "SINV-CANCEL", line_idx: 0, docstatus: 2}
+
+  - name: test_tiebreak_by_ingested_at_when_modified_ties
+    model: stg_sales_invoice
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_sales_invoice')
+        format: sql
+        rows: |
+          select 'SINV-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer":"17850","posting_date":"2025-11-15","due_date":"2025-12-15","is_return":0,"outstanding_amount":15.30,"items":[{"item_code":"85123A","qty":6,"net_amount":10.00,"incoming_rate":1.57}]}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'SINV-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer":"17850","posting_date":"2025-11-15","due_date":"2025-12-15","is_return":0,"outstanding_amount":15.30,"items":[{"item_code":"85123A","qty":6,"net_amount":15.30,"incoming_rate":1.57}]}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {sales_invoice_id: "SINV-TIE", line_idx: 0, net_amount: 15.30}
+
+  - name: test_null_docstatus_is_kept
+    model: stg_sales_invoice
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_sales_invoice')
+        format: sql
+        rows: |
+          select 'SINV-NULL' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 cast(null as int) as docstatus,
+                 parse_json('{"customer":"17850","posting_date":"2025-11-15","due_date":"2025-12-15","is_return":0,"outstanding_amount":15.30,"items":[{"item_code":"85123A","qty":6,"net_amount":15.30,"incoming_rate":1.57}]}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {sales_invoice_id: "SINV-NULL", line_idx: 0, net_amount: 15.30}
+
+  - name: test_grand_total_is_carried
+    model: stg_sales_invoice
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_sales_invoice')
+        format: sql
+        rows: |
+          select 'SINV-TOTAL' as name,
+                 '2025-11-15 08:26:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer":"17850","posting_date":"2025-11-15","due_date":"2025-12-15","is_return":0,"outstanding_amount":18.36,"grand_total":18.36,"items":[{"item_code":"85123A","qty":6,"net_amount":15.30,"incoming_rate":1.57}]}') as raw,
+                 cast('2025-11-15T08:26:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {sales_invoice_id: "SINV-TOTAL", line_idx: 0, grand_total: 18.36}
+
+  - name: test_line_without_incoming_rate_keeps_null
+    model: stg_sales_invoice
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_sales_invoice')
+        format: sql
+        rows: |
+          select 'SINV-MIXED' as name,
+                 '2025-11-15 08:26:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer":"17850","posting_date":"2025-11-15","due_date":"2025-12-15","is_return":0,"outstanding_amount":15.30,"items":[{"item_code":"85123A","qty":6,"net_amount":15.30,"incoming_rate":1.57},{"item_code":"D","qty":1,"net_amount":0.0}]}') as raw,
+                 cast('2025-11-15T08:26:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {sales_invoice_id: "SINV-MIXED", line_idx: 0, item_id: "85123A", incoming_rate: 1.57}
+        - {sales_invoice_id: "SINV-MIXED", line_idx: 1, item_id: "D", incoming_rate: null}

@@ -5,3 +5,8 @@ sources:
     schema: bronze
     tables:
       - name: erpnext_customer
+      - name: erpnext_item
+      - name: erpnext_stock_ledger_entry
+      - name: erpnext_sales_invoice
+      - name: erpnext_purchase_invoice
+      - name: fred_exchange_rates

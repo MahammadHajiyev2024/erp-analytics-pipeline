@@ -38,6 +38,7 @@ Thumbs.db
 # Claude Code (kept local)
 .claude/
 CLAUDE.md
+.superpowers/
 
 
 # AI chat switchboard (kept local)

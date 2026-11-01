@@ -1,0 +1,78 @@
+version: 2
+
+models:
+  - name: stg_purchase_invoice
+    columns:
+      - name: purchase_invoice_id
+        tests:
+          - not_null
+      - name: modified
+        tests:
+          - not_null
+
+unit_tests:
+  - name: test_tiebreak_picks_latest_regardless_of_status
+    model: stg_purchase_invoice
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_purchase_invoice')
+        format: sql
+        rows: |
+          select 'PINV-CANCEL' as name,
+                 '2025-11-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"supplier":"Northern Candle Co.","posting_date":"2025-11-01","items":[{"item_code":"85123A","qty":12,"net_amount":18.84}]}') as raw,
+                 cast('2025-11-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'PINV-CANCEL' as name,
+                 '2025-11-02 00:00:00.000000' as modified,
+                 2 as docstatus,
+                 parse_json('{"supplier":"Northern Candle Co.","posting_date":"2025-11-01","items":[{"item_code":"85123A","qty":12,"net_amount":18.84}]}') as raw,
+                 cast('2025-11-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {purchase_invoice_id: "PINV-CANCEL", line_idx: 0, docstatus: 2}
+
+  - name: test_tiebreak_by_ingested_at_when_modified_ties
+    model: stg_purchase_invoice
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_purchase_invoice')
+        format: sql
+        rows: |
+          select 'PINV-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"supplier":"Northern Candle Co.","posting_date":"2025-11-01","items":[{"item_code":"85123A","qty":12,"net_amount":18.84}]}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'PINV-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"supplier":"Northern Candle Co.","posting_date":"2025-11-01","items":[{"item_code":"85123A","qty":12,"net_amount":19.44}]}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {purchase_invoice_id: "PINV-TIE", line_idx: 0, net_amount: 19.44}
+
+  - name: test_null_docstatus_is_kept
+    model: stg_purchase_invoice
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_purchase_invoice')
+        format: sql
+        rows: |
+          select 'PINV-NULL' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 cast(null as int) as docstatus,
+                 parse_json('{"supplier":"Hearth & Table Ltd","posting_date":"2025-11-01","items":[{"item_code":"22423","qty":5,"net_amount":37.00}]}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {purchase_invoice_id: "PINV-NULL", line_idx: 0, net_amount: 37.00}

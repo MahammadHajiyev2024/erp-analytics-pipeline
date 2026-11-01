@@ -14,7 +14,7 @@ Rules for naming everything in the project, so names are predictable and self-ex
 | Layer | Pattern | Example |
 |---|---|---|
 | Bronze | `<source>_<entity>` | `bronze.erpnext_sales_invoice`, `bronze.fred_exchange_rates` |
-| Silver | `stg_<source>__<entity>` | `silver.stg_erpnext__sales_invoice_item` |
+| Silver | `stg_<entity>` | `silver.stg_sales_invoice` |
 | Gold dimensions | `dim_<entity>` | `gold.dim_customer` |
 | Gold facts | `fact_<process>` | `gold.fact_sales` |
 
