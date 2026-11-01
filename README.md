@@ -97,6 +97,27 @@ docker compose -f docker/erpnext/compose.yaml --env-file .env stop
 First-time setup (company, fiscal year, and the pipeline's read-only user)
 is described in [ERPNext setup](docs/erpnext-setup.md).
 
+## Notable Engineering Decisions
+
+Full reasoning for every decision is in [`docs/design-decisions.md`](docs/design-decisions.md)
+(ADRs). A few worth a closer look:
+
+- **ADR 23 — CI runs as a second, deliberately under-privileged Databricks user, not the
+  pipeline's own account.** Least privilege in practice: a leaked CI secret can touch a
+  throwaway schema, not real data. Getting there took two false starts (a new "scoped token"
+  feature that a required connector backend silently couldn't read) before finding the actual
+  cause — documented including the dead ends, not just the fix.
+- **ADR 17 — Keyset pagination with a watermark overlap for incremental extraction.** Measured,
+  not assumed: offset pagination silently skips rows when a background job rewrites old records
+  mid-page; paging by `modified` instead of the indexed `name` column measured ~11s vs. ~0.1s per
+  page on 1.5M rows.
+- **ADR 18 — Investigated a data-correctness red flag and ruled it out with evidence.** ERPNext
+  was silently rewriting old stock records in the background. Rather than assume it was harmless
+  or over-correct, compared all 69,965 affected rows and confirmed the field revenue math
+  depends on never changed, then added a dbt test so a real future divergence gets caught.
+- **ADR 22 — Found a real dependency conflict via a failed `uv lock`, not a guess**, and
+  restructured the project (dbt in its own `uv` project) rather than force an unsafe downgrade.
+
 ## Roadmap
 
 - [x] Phase 0: Requirements analysis
