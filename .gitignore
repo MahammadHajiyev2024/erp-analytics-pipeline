@@ -17,6 +17,7 @@ __pycache__/
 dbt/target/
 dbt/dbt_packages/
 dbt/logs/
+dbt/.user.yml
 
 # Airflow runtime files
 airflow/logs/
@@ -43,3 +44,8 @@ CLAUDE.md
 docs/ai-context/
 .docs/ai-context/
 *.handoff.md
+
+# My own docs
+.capstone/*
+.capstone
+capstone
