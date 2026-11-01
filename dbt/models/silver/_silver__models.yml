@@ -1,0 +1,113 @@
+version: 2
+
+models:
+  - name: stg_customer
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+      - name: modified
+        tests:
+          - not_null
+
+unit_tests:
+  - name: test_tiebreak_picks_latest_regardless_of_status
+    model: stg_customer
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_customer')
+        format: sql
+        rows: |
+          select 'CUST-CANCEL' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer_name":"Submitted Co","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-CANCEL' as name,
+                 '2024-01-02 00:00:00.000000' as modified,
+                 2 as docstatus,
+                 parse_json('{"customer_name":"Submitted Co","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {customer_id: "CUST-CANCEL", docstatus: 2}
+
+  - name: test_null_docstatus_is_kept
+    model: stg_customer
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_customer')
+        format: sql
+        rows: |
+          select 'CUST-NULL' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 cast(null as int) as docstatus,
+                 parse_json('{"customer_name":"Null Docstatus Co","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {customer_id: "CUST-NULL", customer_name: "Null Docstatus Co"}
+
+  - name: test_tiebreak_by_ingested_at_when_modified_ties
+    model: stg_customer
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_customer')
+        format: sql
+        rows: |
+          select 'CUST-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer_name":"Old Reload","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer_name":"New Reload","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {customer_id: "CUST-TIE", customer_name: "New Reload"}
+
+  - name: test_incremental_only_includes_newer_than_target_max
+    model: stg_customer
+    overrides:
+      macros:
+        is_incremental: true
+    given:
+      - input: source('bronze', 'erpnext_customer')
+        format: sql
+        rows: |
+          select 'CUST-OLD' as name,
+                 '2024-01-03 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer_name":"Too Old","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2024-01-01T12:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-NEW' as name,
+                 '2024-01-03 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"customer_name":"Freshly Arrived","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2024-01-05T00:00:00Z' as timestamp) as _ingested_at
+      - input: this
+        format: sql
+        rows: |
+          select 'CUST-EXISTING' as customer_id,
+                 'Existing Co' as customer_name,
+                 'UK' as territory,
+                 'Retail' as customer_group,
+                 '2024-01-02 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {customer_id: "CUST-NEW", customer_name: "Freshly Arrived"}

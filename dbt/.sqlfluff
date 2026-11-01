@@ -1,0 +1,10 @@
+[sqlfluff]
+dialect = databricks
+templater = dbt
+sql_file_exts = .sql
+
+[sqlfluff:templater:dbt]
+project_dir = .
+profiles_dir = .
+profile = erp_analytics
+target = dev
