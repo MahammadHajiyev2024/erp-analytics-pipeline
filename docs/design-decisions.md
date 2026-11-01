@@ -252,3 +252,49 @@ container itself, not the host machine, which is why `ERPNEXT_URL` needs the
 gotcha).
 **Alternative:** One shared Compose file/network for both stacks, rejected for the coupling above;
 the two stacks are brought up/down independently.
+
+## 22. dbt installed in its own independent `uv` project (`dbt/`), not the root `pyproject.toml`/`uv.lock`
+
+**Decision:** `dbt/pyproject.toml` and `dbt/uv.lock` are a second, separate `uv` project -- own
+`.venv`, own dependency resolution -- invoked via `uv run --directory dbt ...`.
+**Why:** Tried putting `dbt-core`/`dbt-databricks` in the root project's `dev` dependency group
+first (the original reasoning: dbt is invoked directly and often, like `pytest`/`ruff`, and
+doesn't ship the kind of global constraints file that forced Airflow's isolation in ADR 19);
+`uv lock` failed for real -- `dbt-databricks` (every release up to and including 1.13.0,
+confirmed via PyPI) pins `databricks-sdk<0.118.0` and `databricks-sql-connector<4.4.1`,
+incompatible with this project's existing `databricks-sdk>=0.157.0`/
+`databricks-sql-connector>=4.8.0`. A different mechanism than ADR 19's constraints-file conflict
+(ordinary incompatible pins, not a floating constraints file), same practical effect. Isolating
+dbt into its own `uv` project avoided it without downgrading the loaders' Databricks library
+versions. `sqlfluff`/`sqlfluff-templater-dbt` are duplicated into `dbt/pyproject.toml` too,
+since sqlfluff's dbt templater must import dbt-core itself and so has to run from the same
+environment. When Cosmos is added in a later PR, `dbt-core`/`dbt-databricks` additionally get
+duplicated into `docker/airflow/Dockerfile`'s existing pip layer, the same way `pandas`/
+`pyarrow`/`databricks-sql-connector` already are.
+**Alternative:** Downgrade the root project's `databricks-sdk`/`databricks-sql-connector` pins
+to whatever `dbt-databricks` tolerates, rejected -- loses newer SDK/connector behavior the
+loaders use, and every future bump of those libraries would risk re-breaking `dbt-databricks`
+compatibility again.
+
+## 23. CI runs dbt for real, against an isolated `ci` schema, with a second, narrowly-scoped token
+
+**Decision:** Unlike the fully-mocked Python test suite, CI executes real `dbt build` against
+the real, shared `bronze` schema, writing into a dedicated `ci` schema, authenticated with a
+second Databricks PAT scoped (via Unity Catalog `GRANT`s) to read `bronze` and fully use `ci`
+only -- no access to `silver`/`gold`.
+**Why:** dbt tests only mean something against real materialized tables; there's no meaningful
+way to mock a SQL warehouse. Databricks Free Edition's SQL warehouse is zero-cost serverless
+compute, so there's no cost objection. A second, narrower token means a leaked CI secret can't
+touch production data. GitHub Actions doesn't expose secrets to workflows triggered by pull
+requests from forks, covering the main leak vector even on a public repo.
+**Alternative:** Reuse the existing pipeline PAT for CI, rejected -- would give CI the same
+bronze-write privilege as production loaders, a far larger blast radius if it ever leaked.
+**Status: not yet achieved, open as of this writing.** A Databricks PAT always carries its
+owning user's full privileges; Unity Catalog `GRANT`s attach to principals (users, groups,
+service principals), never to individual tokens. A second PAT under the *same* integration
+user has identical rights to the first, so the `GRANT ... TO <ci-token-user>` steps in
+`docs/dbt-setup.md` do not currently narrow anything. Free Edition has no service principals
+(`docs/databricks-setup.md`), so the real fix needs a second, distinct workspace user -- not
+yet decided whether Free Edition supports that. Until resolved, CI's
+token has the same privileges as the loaders' token, and the "leaked CI secret can't touch
+production data" property above does not hold. Revisit before relying on it.
