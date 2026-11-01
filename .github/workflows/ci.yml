@@ -40,3 +40,14 @@ jobs:
 
       - name: Run tests
         run: uv run pytest
+
+      - name: Install dbt dependencies
+        run: uv sync --directory dbt --locked
+
+      - name: Run dbt build (ci schema)
+        env:
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
+          DATABRICKS_CATALOG: ${{ secrets.DATABRICKS_CATALOG }}
+          DATABRICKS_CI_TOKEN: ${{ secrets.DATABRICKS_CI_TOKEN }}
+        run: uv run --directory dbt dbt build --profiles-dir . --target ci --full-refresh
