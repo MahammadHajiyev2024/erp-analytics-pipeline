@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: stg_item
+    columns:
+      - name: item_id
+        tests:
+          - unique
+          - not_null
+      - name: modified
+        tests:
+          - not_null
+
+unit_tests:
+  - name: test_tiebreak_picks_latest_regardless_of_status
+    model: stg_item
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_item')
+        format: sql
+        rows: |
+          select 'ITEM-CANCEL' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_name":"Submitted Item","item_group":"Kitchen & Dining","is_stock_item":1}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'ITEM-CANCEL' as name,
+                 '2024-01-02 00:00:00.000000' as modified,
+                 2 as docstatus,
+                 parse_json('{"item_name":"Submitted Item","item_group":"Kitchen & Dining","is_stock_item":1}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {item_id: "ITEM-CANCEL", docstatus: 2}
+
+  - name: test_tiebreak_by_ingested_at_when_modified_ties
+    model: stg_item
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_item')
+        format: sql
+        rows: |
+          select 'ITEM-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_name":"Old Reload","item_group":"Kitchen & Dining","is_stock_item":1}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'ITEM-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_name":"New Reload","item_group":"Kitchen & Dining","is_stock_item":1}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {item_id: "ITEM-TIE", item_name: "New Reload"}
+
+  - name: test_null_docstatus_is_kept
+    model: stg_item
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_item')
+        format: sql
+        rows: |
+          select 'ITEM-NULL' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 cast(null as int) as docstatus,
+                 parse_json('{"item_name":"Legacy Null Docstatus","item_group":"Candles & Lighting","is_stock_item":0}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {item_id: "ITEM-NULL", item_name: "Legacy Null Docstatus"}

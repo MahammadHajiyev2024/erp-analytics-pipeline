@@ -1,0 +1,104 @@
+version: 2
+
+models:
+  - name: stg_stock_ledger_entry
+    columns:
+      - name: entry_id
+        tests:
+          - unique
+          - not_null
+      - name: modified
+        tests:
+          - not_null
+
+unit_tests:
+  - name: test_tiebreak_picks_latest_regardless_of_cancellation
+    model: stg_stock_ledger_entry
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_stock_ledger_entry')
+        format: sql
+        rows: |
+          select 'MAT-SLE-CANCEL' as name,
+                 '2025-11-15 08:26:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_code":"85123A","posting_date":"2025-11-15","voucher_type":"Sales Invoice","actual_qty":-6,"qty_after_transaction":100,"warehouse":"Stores - MHG","incoming_rate":1.57,"stock_value_difference":-9.42,"is_cancelled":0}') as raw,
+                 cast('2025-11-15T08:26:00Z' as timestamp) as _ingested_at
+          union all
+          select 'MAT-SLE-CANCEL' as name,
+                 '2025-11-16 09:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_code":"85123A","posting_date":"2025-11-15","voucher_type":"Sales Invoice","actual_qty":-6,"qty_after_transaction":100,"warehouse":"Stores - MHG","incoming_rate":1.57,"stock_value_difference":-9.42,"is_cancelled":1}') as raw,
+                 cast('2025-11-16T09:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {entry_id: "MAT-SLE-CANCEL", is_cancelled: 1}
+
+  - name: test_tiebreak_by_ingested_at_when_modified_ties
+    model: stg_stock_ledger_entry
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_stock_ledger_entry')
+        format: sql
+        rows: |
+          select 'MAT-SLE-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_code":"85123A","posting_date":"2025-11-15","voucher_type":"Sales Invoice","actual_qty":-6,"qty_after_transaction":106,"warehouse":"Stores - MHG","incoming_rate":1.57,"stock_value_difference":-9.42,"is_cancelled":0}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'MAT-SLE-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_code":"85123A","posting_date":"2025-11-15","voucher_type":"Sales Invoice","actual_qty":-6,"qty_after_transaction":100,"warehouse":"Stores - MHG","incoming_rate":1.57,"stock_value_difference":-9.42,"is_cancelled":0}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {entry_id: "MAT-SLE-TIE", qty_after_transaction: 100}
+
+  - name: test_voucher_detail_no_is_carried
+    model: stg_stock_ledger_entry
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_stock_ledger_entry')
+        format: sql
+        rows: |
+          select 'MAT-SLE-VOUCHER' as name,
+                 '2025-11-15 08:26:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_code":"85123A","posting_date":"2025-11-15","voucher_type":"Sales Invoice","voucher_no":"ACC-SINV-2026-18359","voucher_detail_no":"n7knl1pf10","actual_qty":-6,"qty_after_transaction":100,"warehouse":"Stores - MHG","incoming_rate":1.57,"stock_value_difference":-9.42,"is_cancelled":0}') as raw,
+                 cast('2025-11-15T08:26:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {entry_id: "MAT-SLE-VOUCHER", voucher_no: "ACC-SINV-2026-18359", voucher_detail_no: "n7knl1pf10"}
+
+  - name: test_is_cancelled_flag_is_preserved_even_though_docstatus_is_always_1
+    model: stg_stock_ledger_entry
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_stock_ledger_entry')
+        format: sql
+        rows: |
+          select 'MAT-SLE-0001' as name,
+                 '2025-11-15 08:26:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_code":"85123A","posting_date":"2025-11-15","voucher_type":"Sales Invoice","actual_qty":-6,"qty_after_transaction":100,"warehouse":"Stores - MHG","incoming_rate":1.57,"stock_value_difference":-9.42,"is_cancelled":0}') as raw,
+                 cast('2025-11-15T08:26:00Z' as timestamp) as _ingested_at
+          union all
+          select 'MAT-SLE-0002' as name,
+                 '2025-11-16 09:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"item_code":"85123A","posting_date":"2025-11-16","voucher_type":"Sales Invoice","actual_qty":-2,"qty_after_transaction":98,"warehouse":"Stores - MHG","incoming_rate":1.57,"stock_value_difference":-3.14,"is_cancelled":1}') as raw,
+                 cast('2025-11-16T09:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {entry_id: "MAT-SLE-0001", docstatus: 1, is_cancelled: 0}
+        - {entry_id: "MAT-SLE-0002", docstatus: 1, is_cancelled: 1}
