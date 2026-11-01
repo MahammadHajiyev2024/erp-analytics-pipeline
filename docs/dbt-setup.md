@@ -77,39 +77,35 @@ to run one.
 
 ## 6. CI
 
-**⚠️ Open issue, not yet resolved (see ADR 23's "Status" note):** Steps 2-4 below describe
-creating a second PAT under the *same* integration user and granting that user a narrower
-scope. That doesn't actually narrow anything -- a Databricks PAT carries its owning user's
-full privileges, and Unity Catalog `GRANT`s attach to users/groups/service principals, never
-to individual tokens. Until a genuinely separate principal exists (Free Edition has no service
-principals; an invited second workspace user is the open question), the CI token has the same
-privileges as the loaders' token. The steps are left here as the intended shape once that's
-resolved, not as something currently providing isolation.
+CI authenticates as a second, narrowly-granted Databricks user (`mhajiyev17@gmail.com`), not
+the integration user the production loaders use -- a leaked CI secret can read `bronze` and
+fully use `ci`, but has no access to `silver`/`gold` (ADR 23).
 
 `.github/workflows/ci.yml` runs `uv sync --directory dbt --locked` then
 `dbt build --profiles-dir . --target ci --full-refresh`, authenticated with the CI token (ADR
 23). `--full-refresh` matters: without it, CI would merge into whatever `ci.stg_customer` was
 left over from the last run, so a model change (e.g. a new column) would never get re-tested
-against a clean build. It builds into `erp_analytics.ci`, never `silver`/`gold`, which still
-keeps CI's writes organized even before the token-scoping question above is resolved. One-time
-setup needed before this works (see ADR 23 for why each piece exists):
+against a clean build. One-time setup:
 
 1. Create the `ci` schema once, in the Databricks SQL editor:
    ```sql
    USE CATALOG erp_analytics;
    CREATE SCHEMA IF NOT EXISTS ci;
    ```
-2. Create a second Databricks PAT, under the same integration user already used for the
-   pipeline PAT.
-3. Grant that token's user the narrower scope (once):
+2. Invite the second workspace user if it doesn't already exist, and grant it (once):
    ```sql
    GRANT USE CATALOG ON CATALOG erp_analytics TO `<ci-token-user>`;
    GRANT USE SCHEMA, SELECT ON SCHEMA erp_analytics.bronze TO `<ci-token-user>`;
    GRANT USE SCHEMA, CREATE TABLE, SELECT, MODIFY ON SCHEMA erp_analytics.ci TO `<ci-token-user>`;
    ```
-   No grants on `silver`/`gold` — that absence is the point.
-4. Verify the scope is actually enforced before trusting the token in CI: using the new token,
-   attempt `CREATE TABLE erp_analytics.silver.permission_test (x INT)` and confirm it's denied.
-5. Add `DATABRICKS_HOST`, `DATABRICKS_HTTP_PATH`, `DATABRICKS_CATALOG`, and
-   `DATABRICKS_CI_TOKEN` as GitHub Actions repo secrets (Settings → Secrets and variables →
-   Actions).
+   No grants on `silver`/`gold` — that absence is the point. Verify with
+   `SHOW GRANTS ON SCHEMA erp_analytics.silver;` (expect nothing for that user).
+3. Create that user's token via the API, **not** the "Generate new token" UI dialog --
+   the UI's default `autoscope_enabled: true` behavior silently produces a token Thrift can't
+   read (ADR 23 has the full story). Call `POST /api/2.0/token/create` with
+   `"scopes": []` and `"autoscope_enabled": false` explicitly, authenticating the request with
+   any token that user already has (even a broken scoped one works for this one call, since
+   the failure is Thrift-specific, not a general API problem).
+4. Add `DATABRICKS_HOST`, `DATABRICKS_HTTP_PATH`, `DATABRICKS_CATALOG`, and
+   `DATABRICKS_CI_TOKEN` (the token from step 3) as GitHub Actions repo secrets (Settings →
+   Secrets and variables → Actions).

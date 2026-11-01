@@ -276,25 +276,50 @@ to whatever `dbt-databricks` tolerates, rejected -- loses newer SDK/connector be
 loaders use, and every future bump of those libraries would risk re-breaking `dbt-databricks`
 compatibility again.
 
-## 23. CI runs dbt for real, against an isolated `ci` schema, with a second, narrowly-scoped token
+## 23. CI runs dbt for real, against an isolated `ci` schema, authenticated as a second, narrowly-granted workspace user
 
 **Decision:** Unlike the fully-mocked Python test suite, CI executes real `dbt build` against
-the real, shared `bronze` schema, writing into a dedicated `ci` schema, authenticated with a
-second Databricks PAT scoped (via Unity Catalog `GRANT`s) to read `bronze` and fully use `ci`
-only -- no access to `silver`/`gold`.
-**Why:** dbt tests only mean something against real materialized tables; there's no meaningful
-way to mock a SQL warehouse. Databricks Free Edition's SQL warehouse is zero-cost serverless
-compute, so there's no cost objection. A second, narrower token means a leaked CI secret can't
-touch production data. GitHub Actions doesn't expose secrets to workflows triggered by pull
-requests from forks, covering the main leak vector even on a public repo.
-**Alternative:** Reuse the existing pipeline PAT for CI, rejected -- would give CI the same
-bronze-write privilege as production loaders, a far larger blast radius if it ever leaked.
-**Status: not yet achieved, open as of this writing.** A Databricks PAT always carries its
-owning user's full privileges; Unity Catalog `GRANT`s attach to principals (users, groups,
-service principals), never to individual tokens. A second PAT under the *same* integration
-user has identical rights to the first, so the `GRANT ... TO <ci-token-user>` steps in
-`docs/dbt-setup.md` do not currently narrow anything. Free Edition has no service principals
-(`docs/databricks-setup.md`), so the real fix needs a second, distinct workspace user -- not
-yet decided whether Free Edition supports that. Until resolved, CI's
-token has the same privileges as the loaders' token, and the "leaked CI secret can't touch
-production data" property above does not hold. Revisit before relying on it.
+the real, shared `bronze` schema, writing into a dedicated `ci` schema. CI authenticates as a
+genuinely separate Databricks user (`mhajiyev17@gmail.com`, invited specifically for this),
+granted only `SELECT`/`USE SCHEMA` on `bronze` and full use of `ci` -- no grants on
+`silver`/`gold` at all. A leaked CI secret can read `bronze` and fully use `ci`, but cannot
+touch `silver`/`gold`.
+**Why real dbt build, not mocked:** dbt tests only mean something against real materialized
+tables; there's no meaningful way to mock a SQL warehouse. Databricks Free Edition's SQL
+warehouse is zero-cost serverless compute, so there's no cost objection.
+**Why a second user, not a second token under the same user:** a Databricks PAT always carries
+its owning *user's* full privileges -- Unity Catalog `GRANT`s attach to principals (users,
+groups, service principals), never to individual tokens. A second PAT under the same
+integration user would have identical rights to the first, narrowing nothing. Confirmed Free
+Edition allows inviting a second real workspace user, and granted that user correctly --
+`SHOW GRANTS ON SCHEMA erp_analytics.ci` confirmed `CREATE TABLE`/`MODIFY`/`SELECT`/`USE
+SCHEMA`; no grants exist on `silver`/`gold` for that user.
+**The detour, and the actual fix:** getting a *usable token* for that second user took two
+false starts before landing on the real cause.
+1. Databricks' "scoped PAT" feature (GA April 2026) was tried first, picking various scopes
+   (`all-apis`, explicit `sql`). Every attempt failed identically at the SQL connector's Thrift
+   `OpenSession` call: `databricks.sql.exc.RequestError: ... Credential was not sent or was of
+   an unsupported type for this API`. A probe script
+   (`data/scratch/probe_scoped_pat.py`) confirmed the token itself was valid -- it
+   authenticated fine as that second user when the connector's newer "kernel" transport was
+   used instead of Thrift (`use_kernel=True`) -- so the problem was specific to Thrift, not the
+   token or the user.
+2. The real cause: Databricks tokens have an `autoscope_enabled` setting that defaults to on
+   for long-lived tokens, which silently converts an ostensibly "full access" token into the
+   new scoped format after creation -- regardless of which scope was picked in the UI. This,
+   not the scope choice itself, is what produced a Thrift-unreadable token every time.
+   **The fix:** create the token via `POST /api/2.0/token/create` with `"scopes": []` *and*
+   `"autoscope_enabled": false` explicitly. That keeps the token in the original, Thrift-
+   readable format. Re-ran the same probe (this time without `use_kernel`, i.e. the real
+   Thrift path dbt-databricks actually uses) and it connected successfully as the second user.
+   `dbt-databricks` only ever uses the Thrift backend -- it doesn't expose `use_kernel`
+   anywhere in `profiles.yml` -- but that no longer matters, since the fixed token doesn't need
+   it.
+**Alternative considered and rejected:** a service principal with OAuth M2M -- the standard
+mechanism for giving automation its own identity. Not pursued to a test, because Databricks'
+own docs say Free Edition has no account console or account-level API access, which
+service-principal OAuth depends on (a Databricks-employee community reply attributes an
+unrelated service-principal failure on Free Edition to exactly this). Moot once the second-user
+PAT route worked.
+**Status: achieved.** CI authenticates as a distinct, narrowly-granted principal; a leaked CI
+secret cannot reach `silver`/`gold`.
