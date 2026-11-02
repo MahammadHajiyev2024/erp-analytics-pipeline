@@ -40,6 +40,9 @@ Thumbs.db
 CLAUDE.md
 .superpowers/
 
+# Superpowers skill plans/specs (scratch; archived ones get committed on purpose, not auto-tracked)
+docs/superpowers/
+
 
 # AI chat switchboard (kept local)
 docs/ai-context/
