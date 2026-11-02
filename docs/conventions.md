@@ -19,8 +19,8 @@ Rules for naming everything in the project, so names are predictable and self-ex
 | Gold facts | `fact_<process>` | `gold.fact_sales` |
 
 - Entity names are **singular** (`customer`, not `customers`).
-- In silver, the **double underscore** separates the source from the entity, so names stay
-  readable when either part contains single underscores. This follows dbt's style guide.
+- Silver has no source prefix — just `stg_<entity>` — since each silver model dedups down to
+  one source and the source already lives in the bronze table name it's built from.
 
 ## Columns
 
