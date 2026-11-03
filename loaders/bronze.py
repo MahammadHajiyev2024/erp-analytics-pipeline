@@ -123,6 +123,11 @@ def load_items_to_bronze(volume_path: str) -> int:
     return load_variant_to_bronze("bronze.erpnext_item", volume_path)
 
 
+def load_suppliers_to_bronze(volume_path: str) -> int:
+    """Load Supplier landing files into bronze.erpnext_supplier."""
+    return load_variant_to_bronze("bronze.erpnext_supplier", volume_path)
+
+
 def load_sales_invoices_to_bronze(volume_path: str) -> int:
     """Load Sales Invoice landing files into bronze.erpnext_sales_invoice."""
     return load_variant_to_bronze("bronze.erpnext_sales_invoice", volume_path)

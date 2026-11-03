@@ -9,7 +9,7 @@ design behind keyset pagination and the watermark overlap is in
 
 | Source | Extractor | Why |
 |---|---|---|
-| Customer, Item, Stock Ledger Entry | `extractors/erpnext/listing.py` (generic list-only) | No child tables; the list API returns every field in one page |
+| Customer, Item, Supplier, Stock Ledger Entry | `extractors/erpnext/listing.py` (generic list-only) | No child tables; the list API returns every field in one page |
 | Sales Invoice, Purchase Invoice | `extractors/erpnext/documents.py` (generic document) | Line items only come back on a full-document fetch, so each document needs its own GET |
 | FRED GBP→USD rates | `extractors/fred/exchange_rates.py` | A different API entirely: series DEXUSUK, the H.10 noon buying rate, published weekly on Mondays, from 2023-11-01. US holidays carry the value `"."`, kept as received; a 30-day overlap covers late publication. The API key is redacted from both error messages and `urllib3`'s retry logs. |
 
@@ -22,6 +22,7 @@ own clock, never the load time) and `last_extracted_at` (informational only).
 ```bash
 uv run python -m extractors.erpnext.customer
 uv run python -m extractors.erpnext.item
+uv run python -m extractors.erpnext.supplier
 uv run python -m extractors.erpnext.stock_ledger_entry
 uv run python -m extractors.erpnext.sales_invoice
 uv run python -m extractors.erpnext.purchase_invoice
@@ -52,7 +53,7 @@ uv run python -m extractors.erpnext.item --max-records 5000 \
    bronze table, starting the SQL warehouse only for this step. One-line wrappers exist per
    source: `load_customers_to_bronze`, `load_items_to_bronze`, `load_sales_invoices_to_bronze`,
    `load_purchase_invoices_to_bronze`, `load_stock_ledger_entries_to_bronze`,
-   `load_fred_exchange_rates_to_bronze`.
+   `load_suppliers_to_bronze`, `load_fred_exchange_rates_to_bronze`.
 
 `COPY INTO` tracks which files it has already loaded into a table, so running the load again
 never reloads a file — dropping the table is the only way to make it reload everything. Landing
@@ -80,6 +81,7 @@ Verifying the bronze layer against ERPNext directly, by comparing the latest ver
 |---|---|---|
 | Customer | 7,306 | Yes |
 | Item | 4,861 | Yes |
+| Supplier | 9 (verified 2 November 2026, the day it was first extracted) | Yes |
 | Sales Invoice | 66,365 submitted + 73 cancelled | Yes |
 | Purchase Invoice | 333 submitted + 1 cancelled | Yes |
 | Stock Ledger Entry | 1,534,054 active + 2,518 cancelled | Yes (`max(modified)` only, since reposting keeps rewriting it) |
