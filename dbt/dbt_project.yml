@@ -12,3 +12,6 @@ models:
   erp_analytics:
     silver:
       +materialized: incremental
+    gold:
+      +materialized: incremental
+      +schema: gold
