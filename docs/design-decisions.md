@@ -323,3 +323,80 @@ unrelated service-principal failure on Free Edition to exactly this). Moot once 
 PAT route worked.
 **Status: achieved.** CI authenticates as a distinct, narrowly-granted principal; a leaked CI
 secret cannot reach `silver`/`gold`.
+
+## 24. Gold surrogate keys are deterministic hashes, not identity columns
+
+**Decision:** Every gold dimension's surrogate key (`customer_key`, `product_key`, etc.) is a
+deterministic hash of its natural key (and, for SCD2 rows, `valid_from`), produced with
+Databricks' native `hash()`/`xxhash64()` and cast to `bigint` -- not a database `IDENTITY`
+column.
+**Why:** The pipeline rebuilds gold incrementally, not from a single full load. A hash is
+stateless and reproducible -- the same natural key always yields the same integer, with no
+run-to-run coordination needed, matching the deterministic `row_number()`/`merge` style every
+silver model already uses. An `IDENTITY` column requires guaranteeing a given natural key never
+gets reassigned a different number across incremental runs, which is state that has to be
+protected carefully and has no equivalent pattern elsewhere in this codebase.
+**Alternative:** A database `IDENTITY`/auto-increment column, rejected for the coordination risk
+above, and for introducing a new, order-dependent key style alongside the existing stateless one.
+
+## 25. `dim_customer` SCD Type 2 history is reconstructed from bronze, not built with `dbt snapshot`
+
+**Decision:** `dim_customer`'s version history (`valid_from`, `valid_to`, `is_current`) is built
+by a custom model reading `bronze.erpnext_customer` directly, using `lag()` over each customer's
+rows ordered by `modified` to detect real attribute changes and turn them into version
+boundaries -- not dbt's built-in `snapshot` materialization.
+**Why:** `dbt snapshot` only starts recording history from the first time it's run; it has no way
+to retroactively discover changes that happened before that. This project's two years of
+simulated history already contain real `customer_group` changes from the simulator's monthly
+segment reviews, fully captured in bronze because bronze is append-only and extraction is
+incremental on `modified`. A plain snapshot run today would attribute every historical sale to
+whatever segment the customer happens to be in *now*, silently defeating the documented reason
+this dimension is SCD2 at all (`docs/data-model.md`: "keeps the customer's territory and segment
+at the time of sale").
+**Why full-refresh, not incremental:** incrementally merging newly-detected versions into an
+already-partial reconstructed history is one of the hardest parts of hand-rolling SCD2 -- it's
+why most teams use `dbt snapshot` specifically to avoid it. Having already given up that
+tool for the backfill reason above, the model instead recomputes the entire version history from
+bronze on every run (`materialized='table'`). Customer volume is small (bounded by the UCI
+dataset), so the recompute cost is negligible.
+**Alternative:** Plain `dbt snapshot` starting now, rejected for losing pre-existing segment
+history. Incremental merge of version history, rejected as unnecessary complexity at this data
+volume, same reasoning as ADR 26 below.
+
+## 26. `dim_date` is generated natively, with the FX carry-forward rate computed once as its own column
+
+**Decision:** `dim_date` is a continuous calendar (every day, no gaps) generated with
+Databricks' native `explode(sequence(start_date, end_date, interval 1 day))` -- no new dbt
+package. It carries a `usd_per_gbp` column: `stg_exchange_rate` left-joined onto the full date
+range, then `last_value(usd_per_gbp) ignore nulls over (order by date rows between unbounded
+preceding and current row)` to carry the most recent published rate forward through weekends and
+holidays FRED doesn't publish for.
+**Why native generation:** no `packages.yml` exists in this repo yet; a native SQL function
+avoids adding a dependency (`dbt_utils.date_spine` would otherwise be the standard choice) for a
+one-line calendar generator Databricks already provides.
+**Why carry-forward lives on `dim_date`, not recomputed per fact:** every fact table already
+joins `dim_date` by `date_key` for its posting date. Computing the carried-forward rate once,
+as a column on the conformed date dimension, means the window function runs once across the
+whole pipeline instead of being duplicated inside `fact_sales` and `fact_purchases` separately.
+**Alternative:** `dbt_utils.date_spine`, rejected to avoid a new dependency without asking first
+(`CLAUDE.md`). Recomputing the FX carry-forward inside each fact model, rejected as needless
+duplication of the same window function.
+
+## 27. Full-refresh `table` materialization for `dim_customer` and `fact_receivables`; incremental `merge` everywhere else in gold
+
+**Decision:** `dim_customer` (SCD2 history) and `fact_receivables` (current-state snapshot) are
+both `materialized='table'`, fully recomputed on every run. `dim_product`, `dim_supplier`,
+`fact_sales`, `fact_purchases`, and `fact_stock_movements` use the incremental `merge` pattern
+already established in silver.
+**Why:** both exceptions need a value to change *in place* for an already-existing row --
+`dim_customer`'s reconstructed version boundaries, and an invoice's `outstanding_amount`/
+`is_overdue` as payments arrive and dates pass with nothing in the source actually changing.
+Incrementally merging either correctly is real, error-prone complexity (see ADR 25); a full
+recompute sidesteps it entirely. Data volume makes this cheap, not just correct: total invoices
+are ~18,887 and customers are in the low thousands (both bounded by the UCI dataset), so
+rescanning everything each run costs low-single-digit seconds on Databricks, no different in
+practice from a "smart" incremental merge at this size. The whole pipeline runs once daily
+(`dags/erp_pipeline.py`, `0 6 * * *`), so "current" means "as of this morning's run" either way.
+**Alternative:** Incremental merge for these two models as well, rejected -- the complexity has
+no payoff below real scale, and would require solving the hard incremental-SCD2/incremental-
+snapshot-fact problem this design otherwise avoids by construction.
