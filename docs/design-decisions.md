@@ -346,13 +346,19 @@ by a custom model reading `bronze.erpnext_customer` directly, using `lag()` over
 rows ordered by `modified` to detect real attribute changes and turn them into version
 boundaries -- not dbt's built-in `snapshot` materialization.
 **Why:** `dbt snapshot` only starts recording history from the first time it's run; it has no way
-to retroactively discover changes that happened before that. This project's two years of
-simulated history already contain real `customer_group` changes from the simulator's monthly
-segment reviews, fully captured in bronze because bronze is append-only and extraction is
-incremental on `modified`. A plain snapshot run today would attribute every historical sale to
-whatever segment the customer happens to be in *now*, silently defeating the documented reason
-this dimension is SCD2 at all (`docs/data-model.md`: "keeps the customer's territory and segment
-at the time of sale").
+to retroactively discover changes that happened before that. Bronze's `erpnext_customer`
+extraction only began capturing versions on 2026-10-25; the simulator's catch-up across the whole
+two-year simulated history -- including its ~11 monthly segment reviews -- finished the day
+before, on 2026-10-24. So bronze only ever captured each customer's final post-catch-up state;
+the pre-extraction segment history is permanently unrecoverable, by any method, not just `dbt
+snapshot` (confirmed: 1,007 of 15,108 real bronze customer rows show `creation != modified`, i.e.
+did undergo a real change, but only the post-change state survived). Real `customer_group`
+changes going forward from 2026-10-25 are fully captured, because bronze is append-only and
+extraction is incremental on `modified`. A plain `dbt snapshot` run today would, same as the
+hand-rolled model, be unable to recover the lost catch-up-period history -- but unlike `dbt
+snapshot`, the hand-rolled model correctly attributes every *future* segment change to its time
+of sale from the moment it happens, which is the documented reason this dimension is SCD2 at all
+(`docs/data-model.md`: "keeps the customer's territory and segment at the time of sale").
 **Why full-refresh, not incremental:** incrementally merging newly-detected versions into an
 already-partial reconstructed history is one of the hardest parts of hand-rolling SCD2 -- it's
 why most teams use `dbt snapshot` specifically to avoid it. Having already given up that
