@@ -6,6 +6,7 @@ sources:
     tables:
       - name: erpnext_customer
       - name: erpnext_item
+      - name: erpnext_supplier
       - name: erpnext_stock_ledger_entry
       - name: erpnext_sales_invoice
       - name: erpnext_purchase_invoice

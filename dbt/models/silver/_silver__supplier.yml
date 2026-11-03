@@ -1,0 +1,79 @@
+version: 2
+
+models:
+  - name: stg_supplier
+    columns:
+      - name: supplier_id
+        tests:
+          - unique
+          - not_null
+      - name: modified
+        tests:
+          - not_null
+
+unit_tests:
+  - name: test_tiebreak_by_ingested_at_when_modified_ties
+    model: stg_supplier
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_supplier')
+        format: sql
+        rows: |
+          select 'SUP-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"supplier_name":"Old Reload","supplier_group":"All Supplier Groups","supplier_type":"Company","country":"United Kingdom"}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'SUP-TIE' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"supplier_name":"New Reload","supplier_group":"All Supplier Groups","supplier_type":"Company","country":"United Kingdom"}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {supplier_id: "SUP-TIE", supplier_name: "New Reload"}
+
+  - name: test_tiebreak_picks_latest_regardless_of_status
+    model: stg_supplier
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_supplier')
+        format: sql
+        rows: |
+          select 'SUP-CANCEL' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 1 as docstatus,
+                 parse_json('{"supplier_name":"Submitted Supplier","supplier_group":"All Supplier Groups","supplier_type":"Company","country":"United Kingdom"}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'SUP-CANCEL' as name,
+                 '2024-01-02 00:00:00.000000' as modified,
+                 2 as docstatus,
+                 parse_json('{"supplier_name":"Submitted Supplier","supplier_group":"All Supplier Groups","supplier_type":"Company","country":"United Kingdom"}') as raw,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {supplier_id: "SUP-CANCEL", docstatus: 2}
+
+  - name: test_null_docstatus_is_kept
+    model: stg_supplier
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: source('bronze', 'erpnext_supplier')
+        format: sql
+        rows: |
+          select 'SUP-NULL' as name,
+                 '2024-01-01 00:00:00.000000' as modified,
+                 cast(null as int) as docstatus,
+                 parse_json('{"supplier_name":"Legacy Null Docstatus","supplier_group":"All Supplier Groups","supplier_type":"Company","country":"United Kingdom"}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {supplier_id: "SUP-NULL", supplier_name: "Legacy Null Docstatus"}
