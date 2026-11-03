@@ -1,0 +1,86 @@
+version: 2
+
+models:
+  - name: fact_receivables
+    columns:
+      - name: invoice_id
+        tests:
+          - unique
+          - not_null
+      - name: due_date_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: customer_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_customer')
+                field: customer_key
+
+unit_tests:
+  - name: test_is_overdue_requires_both_a_past_due_date_and_a_nonzero_balance
+    model: fact_receivables
+    given:
+      - input: ref('stg_sales_invoice')
+        format: sql
+        rows: |
+          select 'SINV-PAST-UNPAID' as sales_invoice_id, 0 as line_idx, 'CUST-1' as customer_id,
+                 to_date('2024-01-01') as posting_date, to_date('2020-01-01') as due_date,
+                 0 as is_return, 50.0 as outstanding_amount, 50.0 as grand_total,
+                 'ITEM-1' as item_id, 1.0 as qty, 50.0 as net_amount, 5.0 as incoming_rate,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'SINV-PAST-PAID' as sales_invoice_id, 0 as line_idx, 'CUST-1' as customer_id,
+                 to_date('2024-01-01') as posting_date, to_date('2020-01-01') as due_date,
+                 0 as is_return, 0.0 as outstanding_amount, 50.0 as grand_total,
+                 'ITEM-1' as item_id, 1.0 as qty, 50.0 as net_amount, 5.0 as incoming_rate,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'SINV-FUTURE-UNPAID' as sales_invoice_id, 0 as line_idx, 'CUST-1' as customer_id,
+                 to_date('2024-01-01') as posting_date, to_date('2099-01-01') as due_date,
+                 0 as is_return, 50.0 as outstanding_amount, 50.0 as grand_total,
+                 'ITEM-1' as item_id, 1.0 as qty, 50.0 as net_amount, 5.0 as incoming_rate,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+      - input: ref('dim_date')
+        format: sql
+        rows: |
+          select to_date('2020-01-01') as `date`, 20200101 as date_key
+          union all
+          select to_date('2099-01-01') as `date`, 20990101 as date_key
+      - input: ref('dim_customer')
+        format: sql
+        rows: |
+          select 111 as customer_key, 'CUST-1' as customer_id, to_date('2023-01-01') as valid_from,
+                 cast(null as date) as valid_to
+    expect:
+      rows:
+        - {invoice_id: "SINV-PAST-UNPAID", outstanding_amount_gbp: 50.0, is_overdue: true}
+        - {invoice_id: "SINV-PAST-PAID", outstanding_amount_gbp: 0.0, is_overdue: false}
+        - {invoice_id: "SINV-FUTURE-UNPAID", outstanding_amount_gbp: 50.0, is_overdue: false}
+
+  - name: test_left_join_keeps_the_row_when_a_dimension_lookup_has_no_match
+    model: fact_receivables
+    given:
+      - input: ref('stg_sales_invoice')
+        format: sql
+        rows: |
+          select 'SINV-ORPHAN' as sales_invoice_id, 0 as line_idx, 'CUST-UNKNOWN' as customer_id,
+                 to_date('2024-01-01') as posting_date, to_date('2020-01-01') as due_date,
+                 0 as is_return, 50.0 as outstanding_amount, 50.0 as grand_total,
+                 'ITEM-1' as item_id, 1.0 as qty, 50.0 as net_amount, 5.0 as incoming_rate,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+      - input: ref('dim_date')
+        format: sql
+        rows: |
+          select to_date('2020-01-01') as `date`, 20200101 as date_key
+      - input: ref('dim_customer')
+        format: sql
+        rows: |
+          select 111 as customer_key, 'CUST-1' as customer_id, to_date('2023-01-01') as valid_from,
+                 cast(null as date) as valid_to
+    expect:
+      rows:
+        - {invoice_id: "SINV-ORPHAN", due_date_key: 20200101, customer_key: null}
