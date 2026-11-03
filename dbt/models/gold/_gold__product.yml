@@ -1,0 +1,53 @@
+version: 2
+
+models:
+  - name: dim_product
+    columns:
+      - name: product_key
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        tests:
+          - unique
+          - not_null
+
+unit_tests:
+  - name: test_maps_item_group_to_category_and_casts_is_stock_item_to_boolean
+    model: dim_product
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: ref('stg_item')
+        format: sql
+        rows: |
+          select 'ITEM-1' as item_id, 'Mug A' as item_name, 'Kitchen & Dining' as item_group,
+                 1 as is_stock_item, cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {product_id: "ITEM-1", product_name: "Mug A", category: "Kitchen & Dining", is_stock_item: true}
+
+  - name: test_incremental_only_includes_newer_than_target_max
+    model: dim_product
+    overrides:
+      macros:
+        is_incremental: true
+    given:
+      - input: ref('stg_item')
+        format: sql
+        rows: |
+          select 'ITEM-OLD' as item_id, 'Too Old' as item_name, 'Kitchen & Dining' as item_group,
+                 1 as is_stock_item, cast('2024-01-01T12:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'ITEM-NEW' as item_id, 'Freshly Arrived' as item_name, 'Kitchen & Dining' as item_group,
+                 1 as is_stock_item, cast('2024-01-05T00:00:00Z' as timestamp) as _ingested_at
+      - input: this
+        format: sql
+        rows: |
+          select xxhash64('ITEM-EXISTING') as product_key, 'ITEM-EXISTING' as product_id,
+                 'Existing' as product_name, 'Kitchen & Dining' as category, true as is_stock_item,
+                 cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {product_id: "ITEM-NEW", product_name: "Freshly Arrived"}

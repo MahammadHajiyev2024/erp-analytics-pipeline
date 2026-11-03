@@ -1,0 +1,55 @@
+version: 2
+
+models:
+  - name: dim_supplier
+    columns:
+      - name: supplier_key
+        tests:
+          - unique
+          - not_null
+      - name: supplier_id
+        tests:
+          - unique
+          - not_null
+
+unit_tests:
+  - name: test_passes_through_id_and_name
+    model: dim_supplier
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: ref('stg_supplier')
+        format: sql
+        rows: |
+          select 'SUP-1' as supplier_id, 'Acme Packaging Ltd' as supplier_name,
+                 'All Supplier Groups' as supplier_group, 'Company' as supplier_type,
+                 'United Kingdom' as country, cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {supplier_id: "SUP-1", supplier_name: "Acme Packaging Ltd"}
+
+  - name: test_incremental_only_includes_newer_than_target_max
+    model: dim_supplier
+    overrides:
+      macros:
+        is_incremental: true
+    given:
+      - input: ref('stg_supplier')
+        format: sql
+        rows: |
+          select 'SUP-OLD' as supplier_id, 'Too Old' as supplier_name, 'All Supplier Groups' as supplier_group,
+                 'Company' as supplier_type, 'United Kingdom' as country,
+                 cast('2024-01-01T12:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'SUP-NEW' as supplier_id, 'Freshly Arrived' as supplier_name, 'All Supplier Groups' as supplier_group,
+                 'Company' as supplier_type, 'United Kingdom' as country,
+                 cast('2024-01-05T00:00:00Z' as timestamp) as _ingested_at
+      - input: this
+        format: sql
+        rows: |
+          select xxhash64('SUP-EXISTING') as supplier_key, 'SUP-EXISTING' as supplier_id,
+                 'Existing' as supplier_name, cast('2024-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {supplier_id: "SUP-NEW", supplier_name: "Freshly Arrived"}
