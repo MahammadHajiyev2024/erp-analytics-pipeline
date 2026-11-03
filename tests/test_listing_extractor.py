@@ -190,6 +190,7 @@ def test_incremental_run_rereads_overlap_and_adds_new_rows(run):
     [
         ("extractors.erpnext.customer", "extract_customers", "Customer"),
         ("extractors.erpnext.item", "extract_items", "Item"),
+        ("extractors.erpnext.supplier", "extract_suppliers", "Supplier"),
         (
             "extractors.erpnext.stock_ledger_entry",
             "extract_stock_ledger_entries",

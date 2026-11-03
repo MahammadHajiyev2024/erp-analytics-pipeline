@@ -15,6 +15,7 @@ from extractors.erpnext.item import extract_items
 from extractors.erpnext.purchase_invoice import run_purchase_invoice_extraction
 from extractors.erpnext.sales_invoice import run_sales_invoice_extraction
 from extractors.erpnext.stock_ledger_entry import extract_stock_ledger_entries
+from extractors.erpnext.supplier import extract_suppliers
 from extractors.fred.exchange_rates import extract_exchange_rates
 from loaders import (
     load_customers_to_bronze,
@@ -23,6 +24,7 @@ from loaders import (
     load_purchase_invoices_to_bronze,
     load_sales_invoices_to_bronze,
     load_stock_ledger_entries_to_bronze,
+    load_suppliers_to_bronze,
 )
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -36,6 +38,7 @@ LoadFn = Callable[[str], int]
 SOURCES: list[tuple[str, ExtractFn, LoadFn]] = [
     ("customer", extract_customers, load_customers_to_bronze),
     ("item", extract_items, load_items_to_bronze),
+    ("supplier", extract_suppliers, load_suppliers_to_bronze),
     ("sales_invoice", run_sales_invoice_extraction, load_sales_invoices_to_bronze),
     ("purchase_invoice", run_purchase_invoice_extraction, load_purchase_invoices_to_bronze),
     ("stock_ledger_entry", extract_stock_ledger_entries, load_stock_ledger_entries_to_bronze),
