@@ -1,0 +1,70 @@
+version: 2
+
+models:
+  - name: fact_stock_movements
+    columns:
+      - name: entry_id
+        tests:
+          - unique
+          - not_null
+      - name: date_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: product_key
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_product')
+                field: product_key
+
+unit_tests:
+  - name: test_passes_through_quantity_and_value_change_with_product_and_date_joined
+    model: fact_stock_movements
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: ref('stg_stock_ledger_entry')
+        format: sql
+        rows: |
+          select 'SLE-1' as entry_id, 'ITEM-1' as item_id, to_date('2024-03-01') as posting_date,
+                 'Sales Invoice' as voucher_type, -6.0 as actual_qty, 94.0 as qty_after_transaction,
+                 -9.42 as stock_value_difference, cast('2024-03-01T00:00:00Z' as timestamp) as _ingested_at
+      - input: ref('dim_date')
+        format: sql
+        rows: |
+          select to_date('2024-03-01') as `date`, 20240301 as date_key
+      - input: ref('dim_product')
+        format: sql
+        rows: |
+          select 999 as product_key, 'ITEM-1' as product_id
+    expect:
+      rows:
+        - {product_key: 999, voucher_type: "Sales Invoice", quantity_change: -6.0, balance_quantity: 94.0, value_change_gbp: -9.42}
+
+  - name: test_left_join_keeps_the_row_when_a_dimension_lookup_has_no_match
+    model: fact_stock_movements
+    overrides:
+      macros:
+        is_incremental: false
+    given:
+      - input: ref('stg_stock_ledger_entry')
+        format: sql
+        rows: |
+          select 'SLE-ORPHAN' as entry_id, 'ITEM-UNKNOWN' as item_id, to_date('2024-03-01') as posting_date,
+                 'Sales Invoice' as voucher_type, -6.0 as actual_qty, 94.0 as qty_after_transaction,
+                 -9.42 as stock_value_difference, cast('2024-03-01T00:00:00Z' as timestamp) as _ingested_at
+      - input: ref('dim_date')
+        format: sql
+        rows: |
+          select to_date('2024-03-01') as `date`, 20240301 as date_key
+      - input: ref('dim_product')
+        format: sql
+        rows: |
+          select 999 as product_key, 'ITEM-1' as product_id
+    expect:
+      rows:
+        - {date_key: 20240301, product_key: null, entry_id: "SLE-ORPHAN"}
