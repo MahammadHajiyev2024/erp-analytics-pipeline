@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: dim_customer
+    columns:
+      - name: customer_key
+        tests:
+          - unique
+          - not_null
+
+unit_tests:
+  - name: test_versions_on_segment_or_territory_change_not_on_name_change_and_excludes_cancelled
+    model: dim_customer
+    given:
+      - input: source('bronze', 'erpnext_customer')
+        format: sql
+        rows: |
+          select 'CUST-001' as name, '2023-01-01 00:00:00.000000' as modified, 1 as docstatus,
+                 parse_json('{"customer_name":"Old Name","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2023-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-001' as name, '2023-06-01 00:00:00.000000' as modified, 1 as docstatus,
+                 parse_json('{"customer_name":"New Name","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2023-06-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-001' as name, '2024-06-01 00:00:00.000000' as modified, 1 as docstatus,
+                 parse_json('{"customer_name":"New Name","territory":"UK","customer_group":"Wholesale"}') as raw,
+                 cast('2024-06-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-001' as name, '2025-01-01 00:00:00.000000' as modified, 2 as docstatus,
+                 parse_json('{"customer_name":"New Name","territory":"UK","customer_group":"Enterprise"}') as raw,
+                 cast('2025-01-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {customer_id: "CUST-001", segment: "Retail", valid_from: "1900-01-01 00:00:00.000000", valid_to: "2024-06-01 00:00:00.000000", is_current: false}
+        - {customer_id: "CUST-001", segment: "Wholesale", valid_from: "2024-06-01 00:00:00.000000", valid_to: null, is_current: true}
+
+  - name: test_two_real_changes_produce_three_contiguous_versions_with_sentinel_opening_the_first
+    model: dim_customer
+    given:
+      - input: source('bronze', 'erpnext_customer')
+        format: sql
+        rows: |
+          select 'CUST-BOUNCE' as name, '2023-01-01 00:00:00.000000' as modified, 1 as docstatus,
+                 parse_json('{"customer_name":"Bounce Co","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2023-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-BOUNCE' as name, '2024-01-01 00:00:00.000000' as modified, 1 as docstatus,
+                 parse_json('{"customer_name":"Bounce Co","territory":"UK","customer_group":"Wholesale"}') as raw,
+                 cast('2024-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-BOUNCE' as name, '2024-07-01 00:00:00.000000' as modified, 1 as docstatus,
+                 parse_json('{"customer_name":"Bounce Co","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2024-07-01T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {customer_id: "CUST-BOUNCE", segment: "Retail", valid_from: "1900-01-01 00:00:00.000000", valid_to: "2024-01-01 00:00:00.000000", is_current: false}
+        - {customer_id: "CUST-BOUNCE", segment: "Wholesale", valid_from: "2024-01-01 00:00:00.000000", valid_to: "2024-07-01 00:00:00.000000", is_current: false}
+        - {customer_id: "CUST-BOUNCE", segment: "Retail", valid_from: "2024-07-01 00:00:00.000000", valid_to: null, is_current: true}
+
+  - name: test_tiebreak_by_ingested_at_when_modified_ties_within_a_version
+    model: dim_customer
+    given:
+      - input: source('bronze', 'erpnext_customer')
+        format: sql
+        rows: |
+          select 'CUST-TIE' as name, '2023-01-01 00:00:00.000000' as modified, 1 as docstatus,
+                 parse_json('{"customer_name":"Stale","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2023-01-01T00:00:00Z' as timestamp) as _ingested_at
+          union all
+          select 'CUST-TIE' as name, '2023-01-01 00:00:00.000000' as modified, 1 as docstatus,
+                 parse_json('{"customer_name":"Corrected","territory":"UK","customer_group":"Retail"}') as raw,
+                 cast('2023-01-02T00:00:00Z' as timestamp) as _ingested_at
+    expect:
+      rows:
+        - {customer_id: "CUST-TIE", customer_name: "Corrected"}
