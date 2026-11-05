@@ -18,7 +18,8 @@ select
     sle.actual_qty as quantity_change,
     sle.qty_after_transaction as balance_quantity,
     sle.stock_value_difference as value_change_gbp,
-    sle._ingested_at
+    sle._ingested_at,
+    sle.stock_value_difference * d.usd_per_gbp as value_change_usd
 from {{ ref('stg_stock_ledger_entry') }} as sle
 left join {{ ref('dim_date') }} as d
     on sle.posting_date = d.`date`
