@@ -43,13 +43,16 @@ erDiagram
         decimal quantity_change
         decimal balance_quantity
         decimal value_change_gbp
+        decimal value_change_usd
     }
     fact_receivables {
         int due_date_key FK
         int customer_key FK
         string invoice_id
         decimal invoice_amount_gbp
+        decimal invoice_amount_usd
         decimal outstanding_amount_gbp
+        decimal outstanding_amount_usd
         boolean is_overdue
     }
     dim_date {
@@ -118,7 +121,10 @@ erDiagram
 | `fact_sales.net_amount_usd` | `net_amount` × FRED rate | Rate on the posting date, or the most recent earlier rate |
 | `fact_stock_movements.quantity_change` | Stock Ledger Entry: `actual_qty` | Positive in, negative out |
 | `fact_stock_movements.balance_quantity` | Stock Ledger Entry: `qty_after_transaction` | Stock after the movement |
+| `fact_stock_movements.value_change_usd` | `stock_value_difference` × FRED rate | Rate on the posting date, or the most recent earlier rate |
 | `fact_receivables.outstanding_amount_gbp` | Sales Invoice: `outstanding_amount` | Includes VAT |
+| `fact_receivables.invoice_amount_usd` | `grand_total` × FRED rate | Rate on the due date, or the most recent earlier rate |
+| `fact_receivables.outstanding_amount_usd` | `outstanding_amount` × FRED rate | Rate on the due date, or the most recent earlier rate |
 | `fact_receivables.due_date_key` | Sales Invoice: `due_date` | |
 | `dim_customer.country` | Customer: `territory` | |
 | `dim_customer.segment` | Customer: `customer_group` | Set by the bootstrap's segment rule and kept current by the simulator's monthly reviews; gold copies it directly |

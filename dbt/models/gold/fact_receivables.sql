@@ -23,6 +23,8 @@ select
     h.sales_invoice_id as invoice_id,
     h.grand_total as invoice_amount_gbp,
     h.outstanding_amount as outstanding_amount_gbp,
+    h.grand_total * d.usd_per_gbp as invoice_amount_usd,
+    h.outstanding_amount * d.usd_per_gbp as outstanding_amount_usd,
     h.due_date < current_date() and h.outstanding_amount > 0 as is_overdue
 from headers as h
 left join {{ ref('dim_date') }} as d
