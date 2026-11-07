@@ -4,7 +4,7 @@
 
 End-to-end analytics pipeline: ERPNext REST API → Airflow → Databricks medallion lakehouse → dbt → Power BI.
 
-> **Status:** Work in progress. Phases 0 to 9 are complete: requirements, architecture, environment setup, continuous integration, the ERPNext source system, two years of verified historical data, a business activity simulator that keeps the company trading daily, a Databricks lakehouse, the extraction/bronze layer, and Airflow orchestration. Phase 10 is now fully done: dbt's Silver layer (6 staging models) and Gold layer (4 dimensions, 4 facts — the constellation schema). Next is Phase 11, Power BI reporting.
+> **Status:** Work in progress. Phases 0 to 9 are complete: requirements, architecture, environment setup, continuous integration, the ERPNext source system, two years of verified historical data, a business activity simulator that keeps the company trading daily, a Databricks lakehouse, the extraction/bronze layer, and Airflow orchestration. Phase 10 is fully done: dbt's Silver layer (6 staging models) and Gold layer (4 dimensions, 4 facts — the constellation schema). Phase 11, Power BI reporting, is underway: the semantic model (10 relationships, 14 DAX measures, row-level security for two sales territories) and all 5 report pages (Overview, Managing Director, Sales Manager, Inventory Manager, Finance Manager) are built. Still to come: screenshots, a demo GIF, and Phase 12.
 
 ## Overview
 
@@ -131,7 +131,7 @@ Full reasoning for every decision is in [`docs/design-decisions.md`](docs/design
 - [x] Phase 8: Extraction and bronze layer
 - [x] Phase 9: Airflow orchestration
 - [x] Phase 10: dbt silver and gold layers
-- [ ] Phase 11: Power BI reporting
+- [ ] Phase 11: Power BI reporting (semantic model and report pages done; screenshots and demo GIF still to come)
 - [ ] Phase 12: Documentation and demo
 
 ## Data Sources
