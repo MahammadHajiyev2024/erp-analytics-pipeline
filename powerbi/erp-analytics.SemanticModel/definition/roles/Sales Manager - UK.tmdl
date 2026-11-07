@@ -1,0 +1,6 @@
+role 'Sales Manager - UK'
+	modelPermission: read
+
+	tablePermission dim_customer = dim_customer[country] = "United Kingdom"
+
+	annotation PBI_Id = c61886f60b3f4623ae6fd3dc951e1c90

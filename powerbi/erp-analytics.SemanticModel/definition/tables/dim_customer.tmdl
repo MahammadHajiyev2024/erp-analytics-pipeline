@@ -1,0 +1,89 @@
+table dim_customer
+	lineageTag: 3bdbffd9-31a9-49c0-a496-6e3cec9ec027
+
+	column customer_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 076aec73-d8e0-4c6c-8fdc-f28fded2fed2
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_name
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 93b27870-42f3-4367-8bff-a09858efc4e7
+		summarizeBy: none
+		sourceColumn: customer_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: efc380e1-3d6c-40e3-8656-0515184696e3
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column segment
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 6723c891-d221-40e4-b916-17941f47c1d3
+		summarizeBy: none
+		sourceColumn: segment
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_from
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: e3765641-c5df-409d-93ea-8c64316e0ee8
+		summarizeBy: none
+		sourceColumn: valid_from
+
+		annotation SummarizationSetBy = Automatic
+
+	column valid_to
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: defb77b8-1881-4d35-9667-746e3f19c7a8
+		summarizeBy: none
+		sourceColumn: valid_to
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_current
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 2ad017b3-3f93-4457-855c-264afc3c0f79
+		summarizeBy: none
+		sourceColumn: is_current
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: e445e0ce-b914-44a1-bc1a-b6ee6c199b0c
+		summarizeBy: sum
+		sourceColumn: customer_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = m
+		mode: import
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-8b7757af-2651.cloud.databricks.com", "/sql/1.0/warehouses/6ed72b04811a9219", [Catalog = "", Database = ""]),
+				    erp_analytics_Database = Source{[Name="erp_analytics",Kind="Database"]}[Data],
+				    gold_Schema = erp_analytics_Database{[Name="gold",Kind="Schema"]}[Data],
+				    dim_customer_Table = gold_Schema{[Name="dim_customer",Kind="Table"]}[Data]
+				in
+				    dim_customer_Table
+
+	annotation PBI_ResultType = Table

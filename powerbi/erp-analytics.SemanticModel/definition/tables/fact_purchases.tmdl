@@ -1,0 +1,107 @@
+table fact_purchases
+	lineageTag: 72797ab7-18dc-406f-9343-892e555a32bb
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 7343ce4b-fd37-4136-8233-983ab56bba46
+		summarizeBy: sum
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column supplier_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: ad3a172a-9743-4e7a-908b-fd701757e798
+		summarizeBy: sum
+		sourceColumn: supplier_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: f3ee0650-dae2-4722-9c04-196f3027ee7b
+		summarizeBy: sum
+		sourceColumn: product_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 539eb172-2c67-4695-9a66-3fffabf24a19
+		summarizeBy: none
+		sourceColumn: invoice_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_idx
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: d038d110-9dae-4085-b056-5d96a0d3a44a
+		summarizeBy: sum
+		sourceColumn: line_idx
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantity
+		dataType: double
+		sourceProviderType: decimal(18, 4)
+		lineageTag: f28197f6-46df-477a-979e-d147b5993316
+		summarizeBy: sum
+		sourceColumn: quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column amount_gbp
+		dataType: double
+		sourceProviderType: decimal(18, 2)
+		lineageTag: 6f30399a-da42-4226-bbe1-b8bd94253eab
+		summarizeBy: sum
+		sourceColumn: amount_gbp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column _ingested_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 9e8f9d57-032b-46ff-9949-70e90a1c103f
+		summarizeBy: none
+		sourceColumn: _ingested_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column amount_usd
+		dataType: double
+		sourceProviderType: decimal(37, 8)
+		lineageTag: 499b9cbb-a8e9-4d03-be1c-5a23a87b8852
+		summarizeBy: sum
+		sourceColumn: amount_usd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_purchases = m
+		mode: import
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-8b7757af-2651.cloud.databricks.com", "/sql/1.0/warehouses/6ed72b04811a9219", [Catalog = "", Database = ""]),
+				    erp_analytics_Database = Source{[Name="erp_analytics",Kind="Database"]}[Data],
+				    gold_Schema = erp_analytics_Database{[Name="gold",Kind="Schema"]}[Data],
+				    fact_purchases_Table = gold_Schema{[Name="fact_purchases",Kind="Table"]}[Data]
+				in
+				    fact_purchases_Table
+
+	annotation PBI_ResultType = Table
