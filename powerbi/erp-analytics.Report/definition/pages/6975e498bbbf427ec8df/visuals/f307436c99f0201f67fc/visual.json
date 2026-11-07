@@ -1,0 +1,133 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "f307436c99f0201f67fc",
+  "position": {
+    "x": 650,
+    "y": 70,
+    "z": 2,
+    "height": 280,
+    "width": 620,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product"
+                    }
+                  },
+                  "Property": "product_name"
+                }
+              },
+              "queryRef": "dim_product.product_name",
+              "nativeQueryRef": "product_name",
+              "active": true
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_stock_movements"
+                    }
+                  },
+                  "Property": "Slow-Moving Stock Value"
+                }
+              },
+              "queryRef": "fact_stock_movements.Slow-Moving Stock Value",
+              "nativeQueryRef": "Slow-Moving Stock Value",
+              "active": false
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_stock_movements"
+                    }
+                  },
+                  "Property": "Stock Value On Hand"
+                }
+              },
+              "queryRef": "fact_stock_movements.Stock Value On Hand",
+              "nativeQueryRef": "Stock Value On Hand",
+              "active": false
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_stock_movements"
+                  }
+                },
+                "Property": "Slow-Moving Stock Value"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "62b043e070e91bf4297d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_product"
+              }
+            },
+            "Property": "product_name"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "110070ba6ad5589bb139",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_stock_movements"
+              }
+            },
+            "Property": "Slow-Moving Stock Value"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "33920838b90425c56e8e",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_stock_movements"
+              }
+            },
+            "Property": "Stock Value On Hand"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

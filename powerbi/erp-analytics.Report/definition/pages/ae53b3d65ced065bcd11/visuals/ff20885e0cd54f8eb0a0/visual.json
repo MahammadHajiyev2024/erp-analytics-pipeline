@@ -1,0 +1,122 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "ff20885e0cd54f8eb0a0",
+  "position": {
+    "x": 650,
+    "y": 360,
+    "z": 4,
+    "height": 250,
+    "width": 620,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Product B"
+                    }
+                  },
+                  "Property": "product_id"
+                }
+              },
+              "queryRef": "Product B.product_id",
+              "nativeQueryRef": "product_id",
+              "active": true
+            }
+          ]
+        },
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "dim_product"
+                    }
+                  },
+                  "Property": "product_id"
+                }
+              },
+              "queryRef": "dim_product.product_id",
+              "nativeQueryRef": "product_id",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales"
+                    }
+                  },
+                  "Property": "Product Pair Frequency"
+                }
+              },
+              "queryRef": "fact_sales.Product Pair Frequency",
+              "nativeQueryRef": "Product Pair Frequency"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "43fb2962e4fc3f6fdbe8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_product"
+              }
+            },
+            "Property": "product_id"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "836da9d8449b1246bd03",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Product B"
+              }
+            },
+            "Property": "product_id"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "8616741ac162d5a0d981",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_sales"
+              }
+            },
+            "Property": "Product Pair Frequency"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}
