@@ -1,0 +1,72 @@
+table dim_product
+	lineageTag: 590e367c-9726-4bb6-a9f7-407cfb90e310
+
+	column product_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: d9d75233-462e-4983-93a2-8543ba447dbe
+		summarizeBy: sum
+		sourceColumn: product_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: bc8f79dc-c129-4d4d-851a-0fec39c718b9
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_name
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: ea7070d1-d4b9-4d8b-8b04-3d2a13eedb5f
+		summarizeBy: none
+		sourceColumn: product_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 08ec1907-557e-45a1-a492-6ef536345b73
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_stock_item
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: c2f34899-975a-42ad-a4dd-d0dc19cadd6e
+		summarizeBy: none
+		sourceColumn: is_stock_item
+
+		annotation SummarizationSetBy = Automatic
+
+	column _ingested_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 9e81e16e-fb89-41f1-b99b-dee796a21e39
+		summarizeBy: none
+		sourceColumn: _ingested_at
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_product = m
+		mode: import
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-8b7757af-2651.cloud.databricks.com", "/sql/1.0/warehouses/6ed72b04811a9219", [Catalog = "", Database = ""]),
+				    erp_analytics_Database = Source{[Name="erp_analytics",Kind="Database"]}[Data],
+				    gold_Schema = erp_analytics_Database{[Name="gold",Kind="Schema"]}[Data],
+				    dim_product_Table = gold_Schema{[Name="dim_product",Kind="Table"]}[Data]
+				in
+				    dim_product_Table
+
+	annotation PBI_ResultType = Table

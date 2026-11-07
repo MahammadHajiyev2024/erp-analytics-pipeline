@@ -1,0 +1,140 @@
+table fact_stock_movements
+	lineageTag: 1263945f-01df-4279-8195-f71fac3aec86
+
+	measure 'Stock On Hand' =
+			SUMX(
+					VALUES(dim_product[product_key]),
+					CALCULATE(LASTNONBLANKVALUE('dim_date'[date], SUM(fact_stock_movements[balance_quantity])))
+			)
+		lineageTag: ebb0d444-32d9-49f7-9fde-96631271d3b2
+
+	measure 'Days of Stock Cover' =
+			VAR _lastSalesDateKey = CALCULATE(MAX(fact_sales[date_key]), ALL(fact_sales))
+			VAR _lastSalesDate = CALCULATE(MAX('dim_date'[date]), 'dim_date'[date_key] = _lastSalesDateKey)
+			VAR _units30d = CALCULATE(SUM(fact_sales[quantity]), DATESINPERIOD('dim_date'[date], _lastSalesDate, -30, DAY))
+			VAR _avgDaily = DIVIDE(_units30d, 30)
+			RETURN DIVIDE([Stock On Hand], _avgDaily)
+		lineageTag: b5e67000-833f-4c65-bdc5-ed492f027877
+
+	measure 'Stock Value On Hand' =
+			SUMX(
+					VALUES(dim_product[product_key]),
+					CALCULATE(
+							SUMX(
+									FILTER(fact_stock_movements, fact_stock_movements[date_key] <= MAX('dim_date'[date_key])),
+									fact_stock_movements[value_change_gbp]
+							)
+					)
+			)
+		lineageTag: c9583586-28e8-4219-9759-bf6a91a9e50c
+
+	measure 'Slow-Moving Stock Value' =
+			VAR _recentSellingProducts =
+					CALCULATETABLE(VALUES(fact_sales[product_key]), DATESINPERIOD('dim_date'[date], MAX('dim_date'[date]), -90, DAY))
+			RETURN CALCULATE([Stock Value On Hand], EXCEPT(VALUES(dim_product[product_key]), _recentSellingProducts))
+		lineageTag: f79252b7-7af6-4298-905e-757988d3c2b8
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: f3fa083d-7080-49f8-b9d1-250e8c1b6d4d
+		summarizeBy: sum
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 90bfb0f7-d465-404b-8f78-7fd516130784
+		summarizeBy: sum
+		sourceColumn: product_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column entry_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 17f1c3d0-8bd4-461d-9f1d-58047d28ee71
+		summarizeBy: none
+		sourceColumn: entry_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column voucher_type
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: 96a3b460-5498-488c-8b56-7d881dd2926f
+		summarizeBy: none
+		sourceColumn: voucher_type
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantity_change
+		dataType: double
+		sourceProviderType: decimal(18, 4)
+		lineageTag: 6b60aeb4-2ca1-4dd3-9955-ff9dfd08bfb6
+		summarizeBy: sum
+		sourceColumn: quantity_change
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column balance_quantity
+		dataType: double
+		sourceProviderType: decimal(18, 4)
+		lineageTag: ba916997-57b9-499e-9c70-e299f5f61a9d
+		summarizeBy: sum
+		sourceColumn: balance_quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column value_change_gbp
+		dataType: double
+		sourceProviderType: decimal(18, 4)
+		lineageTag: 30dfb22d-d67f-4b7a-b137-48cc9ec9a290
+		summarizeBy: sum
+		sourceColumn: value_change_gbp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column _ingested_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 0f74772d-6631-4956-bb3d-0a32fc2357ab
+		summarizeBy: none
+		sourceColumn: _ingested_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column value_change_usd
+		dataType: double
+		sourceProviderType: decimal(37, 10)
+		lineageTag: 5696f0a7-8e7b-4c75-813d-50a728fa4caf
+		summarizeBy: sum
+		sourceColumn: value_change_usd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_stock_movements = m
+		mode: import
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-8b7757af-2651.cloud.databricks.com", "/sql/1.0/warehouses/6ed72b04811a9219", [Catalog = "", Database = ""]),
+				    erp_analytics_Database = Source{[Name="erp_analytics",Kind="Database"]}[Data],
+				    gold_Schema = erp_analytics_Database{[Name="gold",Kind="Schema"]}[Data],
+				    fact_stock_movements_Table = gold_Schema{[Name="fact_stock_movements",Kind="Table"]}[Data]
+				in
+				    fact_stock_movements_Table
+
+	annotation PBI_ResultType = Table

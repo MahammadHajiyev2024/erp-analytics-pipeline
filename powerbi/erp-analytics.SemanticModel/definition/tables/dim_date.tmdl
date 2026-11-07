@@ -1,0 +1,107 @@
+table dim_date
+	lineageTag: a95f106b-3558-4a17-97fe-bb15020c951f
+
+	column date
+		dataType: dateTime
+		formatString: Long Date
+		sourceProviderType: date
+		lineageTag: bd7155a0-37c3-4d10-94b8-cee2a4f380b6
+		summarizeBy: none
+		sourceColumn: date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column usd_per_gbp
+		dataType: double
+		sourceProviderType: decimal(18, 6)
+		lineageTag: c9c6921d-d27f-4feb-a7ce-ee13a3c2d1f9
+		summarizeBy: sum
+		sourceColumn: usd_per_gbp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 29fe7bc9-8c05-448a-b711-33955fd4096b
+		summarizeBy: sum
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column month
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: be8d2594-030c-419e-a10d-7cbd4ae479ca
+		summarizeBy: sum
+		sourceColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: b965e060-455b-4c94-b079-e018fdd053ef
+		summarizeBy: sum
+		sourceColumn: quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column year
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: ce22bb23-d7f7-4ac3-b5a1-c243807633e4
+		summarizeBy: sum
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_weekend
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: a9c8043e-5602-4ba7-852c-79ff73c87aae
+		summarizeBy: none
+		sourceColumn: is_weekend
+
+		annotation SummarizationSetBy = Automatic
+
+	hierarchy Calendar
+		lineageTag: 1d2e3f4a-5b6c-47d8-9e0f-1a2b3c4d5e6f
+
+		level Year
+			lineageTag: 2e3f4a5b-6c7d-48e9-0f1a-2b3c4d5e6f7a
+			column: year
+
+		level Quarter
+			lineageTag: 3f4a5b6c-7d8e-49f0-1a2b-3c4d5e6f7a8b
+			column: quarter
+
+		level Month
+			lineageTag: 4a5b6c7d-8e9f-40a1-2b3c-4d5e6f7a8b9c
+			column: month
+
+		level Day
+			lineageTag: 5b6c7d8e-9f0a-41b2-3c4d-5e6f7a8b9c0d
+			column: date
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-8b7757af-2651.cloud.databricks.com", "/sql/1.0/warehouses/6ed72b04811a9219", [Catalog = "", Database = ""]),
+				    erp_analytics_Database = Source{[Name="erp_analytics",Kind="Database"]}[Data],
+				    gold_Schema = erp_analytics_Database{[Name="gold",Kind="Schema"]}[Data],
+				    dim_date_Table = gold_Schema{[Name="dim_date",Kind="Table"]}[Data]
+				in
+				    dim_date_Table
+
+	annotation PBI_ResultType = Table

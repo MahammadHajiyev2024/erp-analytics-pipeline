@@ -1,0 +1,29 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["dim_customer","dim_date","dim_product","dim_supplier","fact_purchases","fact_sales","fact_receivables","fact_stock_movements"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table dim_customer
+ref table dim_date
+ref table dim_product
+ref table dim_supplier
+ref table fact_purchases
+ref table fact_sales
+ref table fact_receivables
+ref table fact_stock_movements
+ref table Currency
+ref table 'Product B'
+
+ref role 'Sales Manager - France'
+ref role 'Sales Manager - UK'
+
+ref cultureInfo en-US

@@ -1,0 +1,111 @@
+table fact_receivables
+	lineageTag: c8b894a4-ac56-4a10-bb0a-0b359f34605f
+
+	measure 'Accounts Receivable' =
+			VAR _gbp = SUM(fact_receivables[outstanding_amount_gbp])
+			VAR _usd = SUM(fact_receivables[outstanding_amount_usd])
+			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
+		lineageTag: a29bd1ab-e600-4c9b-a263-7d2f4b65de63
+
+	measure 'Overdue %' =
+			DIVIDE(
+					CALCULATE(SUM(fact_receivables[outstanding_amount_gbp]), fact_receivables[is_overdue] = TRUE()),
+					SUM(fact_receivables[outstanding_amount_gbp])
+			)
+		lineageTag: 8ecb3fcc-7376-4ee1-8329-77fd14d66b56
+
+	column due_date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 1a6527a8-64f7-4c0c-8f62-1a066b329851
+		summarizeBy: sum
+		sourceColumn: due_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: cd7d0fb7-ed37-4f5b-a705-75e424afe809
+		summarizeBy: sum
+		sourceColumn: customer_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: b77e33df-a069-431c-aaac-bf41cad661ab
+		summarizeBy: none
+		sourceColumn: invoice_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_amount_gbp
+		dataType: double
+		sourceProviderType: decimal(18, 2)
+		lineageTag: 61952609-c435-4c9b-acdf-5aab1b57f653
+		summarizeBy: sum
+		sourceColumn: invoice_amount_gbp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column outstanding_amount_gbp
+		dataType: double
+		sourceProviderType: decimal(18, 2)
+		lineageTag: 59d764f1-afb3-474f-9b16-b0128d649b08
+		summarizeBy: sum
+		sourceColumn: outstanding_amount_gbp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column invoice_amount_usd
+		dataType: double
+		sourceProviderType: decimal(37, 8)
+		lineageTag: 42597b28-942f-45c0-a503-d526f68eacc8
+		summarizeBy: sum
+		sourceColumn: invoice_amount_usd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column outstanding_amount_usd
+		dataType: double
+		sourceProviderType: decimal(37, 8)
+		lineageTag: cbb33afd-0c05-4192-8df1-74f3db59150c
+		summarizeBy: sum
+		sourceColumn: outstanding_amount_usd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column is_overdue
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 45ce3487-4ffe-4804-b5a0-569918be3aab
+		summarizeBy: none
+		sourceColumn: is_overdue
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_receivables = m
+		mode: import
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-8b7757af-2651.cloud.databricks.com", "/sql/1.0/warehouses/6ed72b04811a9219", [Catalog = "", Database = ""]),
+				    erp_analytics_Database = Source{[Name="erp_analytics",Kind="Database"]}[Data],
+				    gold_Schema = erp_analytics_Database{[Name="gold",Kind="Schema"]}[Data],
+				    fact_receivables_Table = gold_Schema{[Name="fact_receivables",Kind="Table"]}[Data]
+				in
+				    fact_receivables_Table
+
+	annotation PBI_ResultType = Table

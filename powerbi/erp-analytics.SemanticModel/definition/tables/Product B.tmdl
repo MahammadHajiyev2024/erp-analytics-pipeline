@@ -1,0 +1,16 @@
+table 'Product B'
+	lineageTag: 6b1e2c3d-4f5a-48b6-9c7d-8e9f0a1b2c3d
+
+	column product_id
+		lineageTag: 6024ede8-8314-469f-8c65-27e47a42c522
+		isNameInferred
+		sourceColumn: [product_id]
+
+	column product_name
+		lineageTag: 2b79fe82-13a0-4765-931c-77532c260655
+		isNameInferred
+		sourceColumn: [product_name]
+
+	partition 'Product B' = calculated
+		mode: import
+		source = SELECTCOLUMNS(dim_product, "product_id", dim_product[product_id], "product_name", dim_product[product_name])

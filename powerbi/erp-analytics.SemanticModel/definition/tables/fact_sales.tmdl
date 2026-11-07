@@ -1,0 +1,212 @@
+table fact_sales
+	lineageTag: ea5d8190-7b0e-4604-a2cf-3402d7fb990d
+
+	measure 'Net Revenue' =
+			VAR _gbp = SUM(fact_sales[net_amount_gbp])
+			VAR _usd = SUM(fact_sales[net_amount_usd])
+			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
+		lineageTag: 72962f42-fae7-4a4a-bcb8-248eba732fab
+
+	measure 'Gross Profit' =
+			VAR _gbp = SUM(fact_sales[net_amount_gbp]) - SUM(fact_sales[cost_amount_gbp])
+			VAR _usd = SUM(fact_sales[net_amount_usd]) - SUM(fact_sales[cost_amount_usd])
+			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
+		lineageTag: a2b81ee5-92a0-455f-b398-058980906894
+
+	measure 'Gross Margin %' = DIVIDE([Gross Profit], [Net Revenue])
+		lineageTag: 483af8ec-2925-4487-a638-14ced3b8c732
+
+	measure 'Average Order Value' = DIVIDE([Net Revenue], DISTINCTCOUNT(fact_sales[invoice_id]))
+		lineageTag: 81c5c1e3-7fee-434f-8f45-5d26b9af381e
+
+	measure 'Return Rate %' =
+			VAR _returns = CALCULATE(SUM(fact_sales[net_amount_gbp]), fact_sales[is_return] = TRUE())
+			VAR _gross = CALCULATE(SUM(fact_sales[net_amount_gbp]), fact_sales[is_return] = FALSE())
+			RETURN DIVIDE(-1 * _returns, _gross)
+		lineageTag: 4792f1e8-d290-4a2d-8bb2-ad61bf5e2e2d
+
+	measure 'Repeat Purchase Rate' =
+			VAR _activeCustomers = CALCULATETABLE(VALUES(dim_customer[customer_key]), fact_sales)
+			VAR _repeatCustomers =
+					FILTER(_activeCustomers, CALCULATE(DISTINCTCOUNT(fact_sales[invoice_id])) > 1)
+			RETURN DIVIDE(COUNTROWS(_repeatCustomers), COUNTROWS(_activeCustomers))
+		lineageTag: 461a65df-2667-4314-b4a4-a14209987bdd
+
+	measure 'YoY Growth %' =
+			VAR _current = [Net Revenue]
+			VAR _prior = CALCULATE([Net Revenue], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		lineageTag: c7f4303e-9d20-4754-aecf-ccda31030d2b
+
+	measure 'Customer Revenue Change %' =
+			VAR _last3 = CALCULATE([Net Revenue], DATESINPERIOD('dim_date'[date], MAX('dim_date'[date]), -3, MONTH))
+			VAR _prior3 =
+					CALCULATE(
+							[Net Revenue],
+							DATESINPERIOD('dim_date'[date], MAX('dim_date'[date]) - 90, -3, MONTH)
+					)
+			RETURN DIVIDE(_last3 - _prior3, _prior3)
+		lineageTag: 266a5b55-c3cb-4d8b-ba7f-ed368925fade
+
+	measure 'Seasonal Index' =
+			VAR _monthsInContext = VALUES('dim_date'[month])
+			VAR _monthlyTotals =
+					SUMMARIZE(
+							ALL('dim_date'),
+							'dim_date'[year],
+							'dim_date'[month],
+							"MonthQty", CALCULATE(SUM(fact_sales[quantity]))
+					)
+			VAR _avgForTheseMonths =
+					AVERAGEX(FILTER(_monthlyTotals, 'dim_date'[month] IN _monthsInContext), [MonthQty])
+			VAR _avgAllMonths = AVERAGEX(_monthlyTotals, [MonthQty])
+			RETURN DIVIDE(_avgForTheseMonths, _avgAllMonths)
+		lineageTag: 56915676-8a3c-496b-91a0-1444b8874bdc
+
+	measure 'Product Pair Frequency' =
+			VAR _productB = SELECTEDVALUE('Product B'[product_id])
+			VAR _invoicesWithRowProduct = VALUES(fact_sales[invoice_id])
+			RETURN
+			CALCULATE(
+					DISTINCTCOUNT(fact_sales[invoice_id]),
+					TREATAS(_invoicesWithRowProduct, fact_sales[invoice_id]),
+					TREATAS({_productB}, dim_product[product_id])
+			)
+		lineageTag: 429accaa-2c96-4ed2-8d46-ab827497e239
+
+	column date_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: 80e2f50a-cca2-4c21-9983-0d980e853366
+		summarizeBy: sum
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 05730aba-6b7f-421e-9061-949a11eea8c6
+		summarizeBy: sum
+		sourceColumn: customer_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_key
+		dataType: int64
+		formatString: 0
+		sourceProviderType: bigint
+		lineageTag: 6115ca3d-4653-498c-88e7-d669ee17f5f6
+		summarizeBy: sum
+		sourceColumn: product_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column invoice_id
+		dataType: string
+		sourceProviderType: nvarchar(65535)
+		lineageTag: d9cf2857-a883-460c-9e67-460bb6607979
+		summarizeBy: none
+		sourceColumn: invoice_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column line_idx
+		dataType: int64
+		formatString: 0
+		sourceProviderType: int
+		lineageTag: ce3bcc6e-12d8-48b4-8aca-2ee0cf9ba1a0
+		summarizeBy: sum
+		sourceColumn: line_idx
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_return
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		sourceProviderType: bit
+		lineageTag: 2ff7970d-ac8c-42a6-a128-96cefc8eddf0
+		summarizeBy: none
+		sourceColumn: is_return
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantity
+		dataType: double
+		sourceProviderType: decimal(18, 4)
+		lineageTag: 2a487d99-9cc9-4feb-a507-084c6cfc09d8
+		summarizeBy: sum
+		sourceColumn: quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column net_amount_gbp
+		dataType: double
+		sourceProviderType: decimal(18, 2)
+		lineageTag: 1a64e616-1a60-4eec-a234-dd307ee4d121
+		summarizeBy: sum
+		sourceColumn: net_amount_gbp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column _ingested_at
+		dataType: dateTime
+		formatString: General Date
+		sourceProviderType: datetime2
+		lineageTag: 89ef6a86-9fe5-4c23-a355-740b24ad82f0
+		summarizeBy: none
+		sourceColumn: _ingested_at
+
+		annotation SummarizationSetBy = Automatic
+
+	column net_amount_usd
+		dataType: double
+		sourceProviderType: decimal(37, 8)
+		lineageTag: eea409e6-ab66-49b4-9723-ad6f2785698a
+		summarizeBy: sum
+		sourceColumn: net_amount_usd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column cost_amount_gbp
+		dataType: double
+		sourceProviderType: decimal(37, 8)
+		lineageTag: 3656e404-69bb-48c2-a533-465317c24d06
+		summarizeBy: sum
+		sourceColumn: cost_amount_gbp
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column cost_amount_usd
+		dataType: double
+		sourceProviderType: decimal(38, 6)
+		lineageTag: d93fcd9c-a1af-4132-a759-5a882a130e2a
+		summarizeBy: sum
+		sourceColumn: cost_amount_usd
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_sales = m
+		mode: import
+		source =
+				let
+				    Source = DatabricksMultiCloud.Catalogs("dbc-8b7757af-2651.cloud.databricks.com", "/sql/1.0/warehouses/6ed72b04811a9219", [Catalog = "", Database = ""]),
+				    erp_analytics_Database = Source{[Name="erp_analytics",Kind="Database"]}[Data],
+				    gold_Schema = erp_analytics_Database{[Name="gold",Kind="Schema"]}[Data],
+				    fact_sales_Table = gold_Schema{[Name="fact_sales",Kind="Table"]}[Data]
+				in
+				    fact_sales_Table
+
+	annotation PBI_ResultType = Table

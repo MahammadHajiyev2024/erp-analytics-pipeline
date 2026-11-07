@@ -1,0 +1,11 @@
+table Currency
+	lineageTag: f1a2b3c4-5d6e-47f8-9a0b-1c2d3e4f5a6b
+
+	column Currency
+		lineageTag: 330d3d9d-fb1f-4d4f-ad5c-2edb275886d4
+		isNameInferred
+		sourceColumn: [Currency]
+
+	partition Currency = calculated
+		mode: import
+		source = DATATABLE("Currency", STRING, {{"GBP"}, {"USD"}})
