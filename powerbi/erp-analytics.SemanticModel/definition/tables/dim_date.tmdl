@@ -84,6 +84,16 @@ table dim_date
 
 		annotation SummarizationSetBy = Automatic
 
+	column quarter_name
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: a2b3c4d5-e6f7-48a9-0b1c-2d3e4f5a6b7c
+		summarizeBy: none
+		sourceColumn: quarter_name
+		sortByColumn: quarter
+
+		annotation SummarizationSetBy = Automatic
+
 	hierarchy Calendar
 		lineageTag: 1d2e3f4a-5b6c-47d8-9e0f-1a2b3c4d5e6f
 
@@ -93,7 +103,7 @@ table dim_date
 
 		level Quarter
 			lineageTag: 3f4a5b6c-7d8e-49f0-1a2b-3c4d5e6f7a8b
-			column: quarter
+			column: quarter_name
 
 		level Month
 			lineageTag: 4a5b6c7d-8e9f-40a1-2b3c-4d5e6f7a8b9c

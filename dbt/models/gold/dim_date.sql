@@ -53,6 +53,7 @@ select
     month(`date`) as `month`,
     date_format(`date`, 'MMM') as month_name,
     quarter(`date`) as `quarter`,
+    concat('Qtr ', cast(quarter(`date`) as string)) as quarter_name,
     year(`date`) as `year`,
     dayofweek(`date`) in (1, 7) as is_weekend
 from with_rate
