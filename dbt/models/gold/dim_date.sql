@@ -51,6 +51,7 @@ select
     usd_per_gbp,
     cast(date_format(`date`, 'yyyyMMdd') as int) as date_key,
     month(`date`) as `month`,
+    date_format(`date`, 'MMM') as month_name,
     quarter(`date`) as `quarter`,
     year(`date`) as `year`,
     dayofweek(`date`) in (1, 7) as is_weekend

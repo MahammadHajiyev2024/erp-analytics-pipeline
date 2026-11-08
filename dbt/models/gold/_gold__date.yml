@@ -10,6 +10,9 @@ models:
       - name: date
         tests:
           - not_null
+      - name: month_name
+        tests:
+          - not_null
 
 unit_tests:
   - name: test_calendar_covers_multi_source_bounds_and_carries_fx_rate_through_gaps
