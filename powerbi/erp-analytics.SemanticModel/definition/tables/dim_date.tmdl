@@ -74,6 +74,16 @@ table dim_date
 
 		annotation SummarizationSetBy = Automatic
 
+	column month_name
+		dataType: string
+		sourceProviderType: varchar(8000)
+		lineageTag: f1a2b3c4-d5e6-47f8-9a0b-1c2d3e4f5a6b
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
 	hierarchy Calendar
 		lineageTag: 1d2e3f4a-5b6c-47d8-9e0f-1a2b3c4d5e6f
 
@@ -87,7 +97,7 @@ table dim_date
 
 		level Month
 			lineageTag: 4a5b6c7d-8e9f-40a1-2b3c-4d5e6f7a8b9c
-			column: month
+			column: month_name
 
 		level Day
 			lineageTag: 5b6c7d8e-9f0a-41b2-3c4d-5e6f7a8b9c0d
