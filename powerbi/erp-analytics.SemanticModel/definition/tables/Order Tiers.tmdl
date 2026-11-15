@@ -1,0 +1,57 @@
+table 'Order Tiers'
+	lineageTag: e9c2fd57-ff99-4145-b78f-045b273a91b4
+
+	column 'Tier Name'
+		lineageTag: 1bc8c8a1-9cdf-4b3f-b9b8-a86162ce3ecc
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Tier Name]
+		sortByColumn: Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	column Min
+		formatString: 0
+		lineageTag: 83018afc-ee27-4ac7-ad86-3e60fa0223ef
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Min]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Max
+		formatString: 0
+		lineageTag: e5e0cab2-9551-4434-9be8-26075cd3bf05
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Max]
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sort
+		formatString: 0
+		lineageTag: fb6b0f00-d93a-41e5-911d-acb5e3e3192e
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Sort]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Order Tiers' = calculated
+		mode: import
+		source =
+
+				DATATABLE(
+				    "Tier Name", STRING,
+				    "Min", INTEGER,
+				    "Max", INTEGER,
+				    "Sort", INTEGER,
+				    {
+				        {"Under 100", 0, 100, 1},
+				        {"100 - 500", 100, 500, 2},
+				        {"500 - 1,000", 500, 1000, 3},
+				        {"Over 1,000", 1000, 9999999, 4}
+				    }
+				)
+
+	annotation PBI_Id = 719d77a61a574036a27dd055e273bd37

@@ -5,14 +5,41 @@ table fact_receivables
 			VAR _gbp = SUM(fact_receivables[outstanding_amount_gbp])
 			VAR _usd = SUM(fact_receivables[outstanding_amount_usd])
 			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
+		formatString: \$#,0.0;(\$#,0.0);\$#,0.0
 		lineageTag: a29bd1ab-e600-4c9b-a263-7d2f4b65de63
+
+		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
 
 	measure 'Overdue %' =
 			DIVIDE(
 					CALCULATE(SUM(fact_receivables[outstanding_amount_gbp]), fact_receivables[is_overdue] = TRUE()),
 					SUM(fact_receivables[outstanding_amount_gbp])
 			)
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 8ecb3fcc-7376-4ee1-8329-77fd14d66b56
+
+	measure 'Dynamic Order Volume' = ```
+
+			VAR CurrentMin = MIN('Order Tiers'[Min])
+			VAR CurrentMax = MAX('Order Tiers'[Max])
+			-- This reads your slicer toggle. If nothing is selected, it defaults to GBP.
+			VAR SelectedCurrency = SELECTEDVALUE('Currency'[Currency], "GBP")
+
+			RETURN
+			CALCULATE(
+			    DISTINCTCOUNT(fact_receivables[invoice_id]),
+			    FILTER(
+			        fact_receivables,
+			        IF(
+			            SelectedCurrency = "USD",
+			            fact_receivables[invoice_amount_usd] >= CurrentMin && fact_receivables[invoice_amount_usd] < CurrentMax,
+			            fact_receivables[invoice_amount_gbp] >= CurrentMin && fact_receivables[invoice_amount_gbp] < CurrentMax
+			        )
+			    )
+			)
+			```
+		formatString: 0
+		lineageTag: a92b51a1-c4fb-4ed0-ac63-4eb74e0eaf75
 
 	column due_date_key
 		dataType: int64
@@ -94,6 +121,38 @@ table fact_receivables
 		lineageTag: 45ce3487-4ffe-4804-b5a0-569918be3aab
 		summarizeBy: none
 		sourceColumn: is_overdue
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Size Tier' =
+
+			SWITCH(
+			    TRUE(),
+			    fact_receivables[invoice_amount_gbp] < 100, "Under £100",
+			    fact_receivables[invoice_amount_gbp] < 500, "£100 - £500",
+			    fact_receivables[invoice_amount_gbp] < 1000, "£500 - £1,000",
+			    "Over £1,000"
+			)
+		lineageTag: 31bd2b13-ef6c-48a5-9881-a7dcd1908e1f
+		summarizeBy: none
+		sortByColumn: 'Order Size Tier Sort'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Size Tier Sort' =
+
+			SWITCH(
+			    TRUE(),
+			    fact_receivables[invoice_amount_gbp] < 100, 1,
+			    fact_receivables[invoice_amount_gbp] < 500, 2,
+			    fact_receivables[invoice_amount_gbp] < 1000, 3,
+			    4
+			)
+		formatString: 0
+		lineageTag: a7c5225b-4100-4f55-be1d-acdfe2d52a64
+		summarizeBy: sum
 
 		annotation SummarizationSetBy = Automatic
 
