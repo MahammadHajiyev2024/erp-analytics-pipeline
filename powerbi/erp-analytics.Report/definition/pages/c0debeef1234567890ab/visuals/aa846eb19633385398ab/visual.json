@@ -1,38 +1,38 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
-  "name": "cafe000413579bdf0246",
+  "name": "aa846eb19633385398ab",
   "position": {
-    "x": 10,
-    "y": 460,
-    "z": 3,
-    "height": 250,
-    "width": 620,
-    "tabOrder": 3
+    "x": 10.126582278481012,
+    "y": 459.746835443038,
+    "z": 4000,
+    "height": 260.253164556962,
+    "width": 619.746835443038,
+    "tabOrder": 4000
   },
   "visual": {
-    "visualType": "barChart",
+    "visualType": "treemap",
     "query": {
       "queryState": {
-        "Category": {
+        "Group": {
           "projections": [
             {
               "field": {
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dim_customer"
+                      "Entity": "dim_product"
                     }
                   },
-                  "Property": "country"
+                  "Property": "category"
                 }
               },
-              "queryRef": "dim_customer.country",
-              "nativeQueryRef": "country",
+              "queryRef": "dim_product.category",
+              "nativeQueryRef": "category",
               "active": true
             }
           ]
         },
-        "Y": {
+        "Values": {
           "projections": [
             {
               "field": {
@@ -70,38 +70,49 @@
         "isDefaultSort": true
       }
     },
+    "objects": {
+      "legend": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Net Revenue by Product Category'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "cafe010213579bdf0246",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Net Revenue"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "cafe010313579bdf0246",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "dim_customer"
-              }
-            },
-            "Property": "country"
-          }
-        },
-        "type": "Categorical"
-      }
-    ]
   }
 }

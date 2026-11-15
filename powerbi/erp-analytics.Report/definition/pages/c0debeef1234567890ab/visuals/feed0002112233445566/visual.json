@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "feed0002112233445566",
   "position": {
-    "x": 10,
-    "y": 70,
-    "z": 1,
-    "height": 110,
-    "width": 1260,
-    "tabOrder": 1
+    "x": 9.72644376899696,
+    "y": 33.069908814589667,
+    "z": 0,
+    "height": 109.90881458966565,
+    "width": 1091.3069908814591,
+    "tabOrder": 0
   },
   "visual": {
     "visualType": "cardVisual",
@@ -122,93 +122,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "feed0102112233445566",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Net Revenue"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "feed0103112233445566",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Gross Profit"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "feed0104112233445566",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Gross Margin %"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "feed0105112233445566",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "YoY Growth %"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "feed0106112233445566",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_receivables"
-              }
-            },
-            "Property": "Accounts Receivable"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "feed0107112233445566",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_receivables"
-              }
-            },
-            "Property": "Overdue %"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }
