@@ -7,17 +7,39 @@ table fact_sales
 			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
 		lineageTag: 72962f42-fae7-4a4a-bcb8-248eba732fab
 
+		formatStringDefinition =
+				SWITCH(
+				    SELECTEDVALUE('Currency'[Currency], "GBP"),
+				    "USD", "$#,0.0",
+				    "£#,0.0"
+				)
+
 	measure 'Gross Profit' =
 			VAR _gbp = SUM(fact_sales[net_amount_gbp]) - SUM(fact_sales[cost_amount_gbp])
 			VAR _usd = SUM(fact_sales[net_amount_usd]) - SUM(fact_sales[cost_amount_usd])
 			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
 		lineageTag: a2b81ee5-92a0-455f-b398-058980906894
 
+		formatStringDefinition =
+				SWITCH(
+				    SELECTEDVALUE('Currency'[Currency], "GBP"),
+				    "USD", "$#,0.0",
+				    "£#,0.0"
+				)
+
 	measure 'Gross Margin %' = DIVIDE([Gross Profit], [Net Revenue])
+		formatString: #,0.00%;-#,0.00%;#,0.00%
 		lineageTag: 483af8ec-2925-4487-a638-14ced3b8c732
 
 	measure 'Average Order Value' = DIVIDE([Net Revenue], DISTINCTCOUNT(fact_sales[invoice_id]))
 		lineageTag: 81c5c1e3-7fee-434f-8f45-5d26b9af381e
+
+		formatStringDefinition =
+				SWITCH(
+				    SELECTEDVALUE('Currency'[Currency], "GBP"),
+				    "USD", "$#,0.0",
+				    "£#,0.0"
+				)
 
 	measure 'Return Rate %' =
 			VAR _returns = CALCULATE(SUM(fact_sales[net_amount_gbp]), fact_sales[is_return] = TRUE())
@@ -30,12 +52,18 @@ table fact_sales
 			VAR _repeatCustomers =
 					FILTER(_activeCustomers, CALCULATE(DISTINCTCOUNT(fact_sales[invoice_id])) > 1)
 			RETURN DIVIDE(COUNTROWS(_repeatCustomers), COUNTROWS(_activeCustomers))
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 461a65df-2667-4314-b4a4-a14209987bdd
 
-	measure 'YoY Growth %' =
+	measure 'YoY Growth %' = ```
+
 			VAR _current = [Net Revenue]
 			VAR _prior = CALCULATE([Net Revenue], SAMEPERIODLASTYEAR('dim_date'[date]))
-			RETURN DIVIDE(_current - _prior, _prior)
+
+			RETURN
+			DIVIDE(_current - _prior, _prior)
+			```
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: c7f4303e-9d20-4754-aecf-ccda31030d2b
 
 	measure 'Customer Revenue Change %' =
@@ -73,6 +101,10 @@ table fact_sales
 					TREATAS({_productB}, dim_product[product_id])
 			)
 		lineageTag: 429accaa-2c96-4ed2-8d46-ab827497e239
+
+	measure 'Total Active Customers' = DISTINCTCOUNT(fact_sales[customer_key])
+		formatString: 0
+		lineageTag: 4f455bfa-d364-486e-aff1-90b3f5713e99
 
 	column date_key
 		dataType: int64
