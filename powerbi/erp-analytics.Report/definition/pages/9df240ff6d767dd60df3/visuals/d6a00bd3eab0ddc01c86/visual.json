@@ -1,0 +1,136 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "d6a00bd3eab0ddc01c86",
+  "position": {
+    "x": 9.8753117206982548,
+    "y": 193.91521197007481,
+    "z": 3000,
+    "height": 253.16708229426433,
+    "width": 620.34912718204487,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Hierarchy": "Calendar"
+                    }
+                  },
+                  "Level": "Year"
+                }
+              },
+              "queryRef": "dim_date.Calendar.Year",
+              "nativeQueryRef": "Calendar Year",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Hierarchy": "Calendar"
+                    }
+                  },
+                  "Level": "Quarter"
+                }
+              },
+              "queryRef": "dim_date.Calendar.Quarter",
+              "nativeQueryRef": "Calendar Quarter",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Hierarchy": "Calendar"
+                    }
+                  },
+                  "Level": "Month"
+                }
+              },
+              "queryRef": "dim_date.Calendar.Month",
+              "nativeQueryRef": "Calendar Month",
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Hierarchy": "Calendar"
+                    }
+                  },
+                  "Level": "Day"
+                }
+              },
+              "queryRef": "dim_date.Calendar.Day",
+              "nativeQueryRef": "Calendar Day",
+              "active": false
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales"
+                    }
+                  },
+                  "Property": "Net Revenue"
+                }
+              },
+              "queryRef": "fact_sales.Net Revenue",
+              "nativeQueryRef": "Net Revenue"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales"
+                    }
+                  },
+                  "Property": "Gross Profit"
+                }
+              },
+              "queryRef": "fact_sales.Gross Profit",
+              "nativeQueryRef": "Gross Profit"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

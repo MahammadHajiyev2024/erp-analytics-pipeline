@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "79033ed25636085d3d4f",
   "position": {
-    "x": 650,
-    "y": 460,
-    "z": 4,
-    "height": 250,
-    "width": 620,
-    "tabOrder": 4
+    "x": 771.17206982543644,
+    "y": 459.65087281795508,
+    "z": 2000,
+    "height": 250.47381546134662,
+    "width": 499.15211970074813,
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "barChart",
@@ -71,37 +71,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "c9f180556065a56393d6",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Net Revenue"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "3c6000f61a6558f6b3c0",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "dim_customer"
-              }
-            },
-            "Property": "segment"
-          }
-        },
-        "type": "Categorical"
-      }
-    ]
   }
 }
