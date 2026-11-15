@@ -4,10 +4,10 @@
   "position": {
     "x": 10,
     "y": 360,
-    "z": 3,
+    "z": 3000,
     "height": 330,
     "width": 1260,
-    "tabOrder": 3
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "columnChart",
@@ -28,12 +28,72 @@
                       "Hierarchy": "Calendar"
                     }
                   },
+                  "Level": "Year"
+                }
+              },
+              "queryRef": "dim_date.Calendar.Year",
+              "nativeQueryRef": "Calendar Year",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Hierarchy": "Calendar"
+                    }
+                  },
+                  "Level": "Quarter"
+                }
+              },
+              "queryRef": "dim_date.Calendar.Quarter",
+              "nativeQueryRef": "Calendar Quarter",
+              "active": true
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Hierarchy": "Calendar"
+                    }
+                  },
                   "Level": "Month"
                 }
               },
               "queryRef": "dim_date.Calendar.Month",
               "nativeQueryRef": "Calendar Month",
-              "active": true
+              "active": false
+            },
+            {
+              "field": {
+                "HierarchyLevel": {
+                  "Expression": {
+                    "Hierarchy": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Hierarchy": "Calendar"
+                    }
+                  },
+                  "Level": "Day"
+                }
+              },
+              "queryRef": "dim_date.Calendar.Day",
+              "nativeQueryRef": "Calendar Day",
+              "active": false
             }
           ]
         },
@@ -52,32 +112,28 @@
               },
               "queryRef": "fact_sales.Seasonal Index",
               "nativeQueryRef": "Seasonal Index"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "dim_date"
+                        }
+                      },
+                      "Property": "month"
+                    }
+                  },
+                  "Function": 1
+                }
+              },
+              "queryRef": "Sum(dim_date.month)",
+              "nativeQueryRef": "Average of month"
             }
           ]
         }
-      },
-      "sortDefinition": {
-        "sort": [
-          {
-            "field": {
-              "HierarchyLevel": {
-                "Expression": {
-                  "Hierarchy": {
-                    "Expression": {
-                      "SourceRef": {
-                        "Entity": "dim_date"
-                      }
-                    },
-                    "Hierarchy": "Calendar"
-                  }
-                },
-                "Level": "Month"
-              }
-            },
-            "direction": "Ascending"
-          }
-        ],
-        "isDefaultSort": true
       }
     },
     "drillFilterOtherVisuals": true
@@ -85,7 +141,7 @@
   "filterConfig": {
     "filters": [
       {
-        "name": "a941a827141472717fbb",
+        "name": "7e22d4fa52761e50dcc1",
         "field": {
           "HierarchyLevel": {
             "Expression": {
@@ -98,24 +154,50 @@
                 "Hierarchy": "Calendar"
               }
             },
-            "Level": "Month"
+            "Level": "Year"
           }
         },
-        "type": "Advanced"
-      },
-      {
-        "name": "868b7477eedd157bab04",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "d",
+              "Entity": "dim_date",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "d"
+                          }
+                        },
+                        "Property": "year"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "2024L"
+                        }
+                      }
+                    ]
+                  ]
+                }
               }
-            },
-            "Property": "Seasonal Index"
-          }
+            }
+          ]
         },
-        "type": "Advanced"
+        "howCreated": "Drill"
       }
     ]
   }
