@@ -1,35 +1,39 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
-  "name": "4a1f38766645a79318b1",
+  "name": "aa846eb19633385398ab",
   "position": {
-    "x": 10,
-    "y": 70,
-    "z": 1,
-    "height": 280,
-    "width": 620,
-    "tabOrder": 1
+    "x": 10.126582278481012,
+    "y": 459.746835443038,
+    "z": 4000,
+    "height": 260.253164556962,
+    "width": 619.746835443038,
+    "tabOrder": 4000
   },
   "visual": {
-    "visualType": "tableEx",
+    "visualType": "treemap",
     "query": {
       "queryState": {
-        "Values": {
+        "Group": {
           "projections": [
             {
               "field": {
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "dim_customer"
+                      "Entity": "dim_product"
                     }
                   },
-                  "Property": "customer_name"
+                  "Property": "category"
                 }
               },
-              "queryRef": "dim_customer.customer_name",
-              "nativeQueryRef": "customer_name",
+              "queryRef": "dim_product.category",
+              "nativeQueryRef": "category",
               "active": true
-            },
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
             {
               "field": {
                 "Measure": {
@@ -42,8 +46,7 @@
                 }
               },
               "queryRef": "fact_sales.Net Revenue",
-              "nativeQueryRef": "Net Revenue",
-              "active": false
+              "nativeQueryRef": "Net Revenue"
             }
           ]
         }
@@ -67,38 +70,49 @@
         "isDefaultSort": true
       }
     },
+    "objects": {
+      "legend": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Net Revenue by Product Category'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "74ce61f9195d3b9d1469",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "dim_customer"
-              }
-            },
-            "Property": "customer_name"
-          }
-        },
-        "type": "Categorical"
-      },
-      {
-        "name": "84b6b716ca29403fc7a4",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Net Revenue"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

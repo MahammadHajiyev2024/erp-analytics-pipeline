@@ -4,10 +4,10 @@
   "position": {
     "x": 10,
     "y": 70,
-    "z": 1,
+    "z": 1000,
     "height": 300,
     "width": 620,
-    "tabOrder": 1
+    "tabOrder": 1000
   },
   "visual": {
     "visualType": "barChart",
@@ -71,37 +71,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "2335beb7ed71d952cb01",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "dim_product"
-              }
-            },
-            "Property": "category"
-          }
-        },
-        "type": "Categorical"
-      },
-      {
-        "name": "45b3c48b08dd4340216b",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Gross Margin %"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

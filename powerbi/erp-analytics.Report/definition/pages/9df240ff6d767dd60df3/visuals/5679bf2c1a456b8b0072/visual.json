@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
-  "name": "3b119f1169c4fd394e2a",
+  "name": "5679bf2c1a456b8b0072",
   "position": {
-    "x": 10,
-    "y": 70,
-    "z": 1,
-    "height": 110,
-    "width": 1260,
-    "tabOrder": 1
+    "x": 10.281124497991968,
+    "y": 48.321285140562246,
+    "z": 4000,
+    "height": 132.62650602409639,
+    "width": 749.49397590361446,
+    "tabOrder": 4000
   },
   "visual": {
     "visualType": "cardVisual",
@@ -94,65 +94,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "ccca4166ed01f277813f",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Net Revenue"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "6799f1eeff1e8252e34d",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Gross Profit"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "ceb8943d11bae9aab049",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Gross Margin %"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "ae0492ed2eecbfb0442b",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "YoY Growth %"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

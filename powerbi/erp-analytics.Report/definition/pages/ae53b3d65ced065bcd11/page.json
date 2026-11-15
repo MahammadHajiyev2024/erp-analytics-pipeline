@@ -4,5 +4,22 @@
   "displayName": "Sales Manager",
   "displayOption": "FitToPage",
   "height": 720,
-  "width": 1280
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "d548e1eec3a80944a1c6",
+      "target": "63f15e59c015835e40c8",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d548e1eec3a80944a1c6",
+      "target": "ee7f04b0d0e86c99c70b",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d548e1eec3a80944a1c6",
+      "target": "eeddf7fc6ff0367d5c18",
+      "type": "DataFilter"
+    }
+  ]
 }

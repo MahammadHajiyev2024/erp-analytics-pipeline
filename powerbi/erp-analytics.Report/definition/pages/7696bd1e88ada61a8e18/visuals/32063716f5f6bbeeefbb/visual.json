@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "32063716f5f6bbeeefbb",
   "position": {
-    "x": 650,
-    "y": 70,
-    "z": 2,
-    "height": 140,
-    "width": 620,
-    "tabOrder": 2
+    "x": 649.97506234413959,
+    "y": 70.024937655860342,
+    "z": 2000,
+    "height": 149.92518703241896,
+    "width": 620.34912718204487,
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "cardVisual",
@@ -52,23 +52,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "8e151b1b5dd567d9725f",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Return Rate %"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

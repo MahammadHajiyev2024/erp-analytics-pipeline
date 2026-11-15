@@ -4,8 +4,8 @@
     {
       "ordinal": 0,
       "scrollPosition": {
-        "x": 0,
-        "y": 75
+        "x": 43.995726008060487,
+        "y": 8.799145201612097
       },
       "nodes": [
         {
@@ -113,7 +113,10 @@
           "zIndex": 7
         },
         {
-          "location": {},
+          "location": {
+            "x": 1154,
+            "y": 359
+          },
           "nodeIndex": "Currency",
           "nodeLineageTag": "f1a2b3c4-5d6e-47f8-9a0b-1c2d3e4f5a6b",
           "size": {
@@ -123,7 +126,10 @@
           "zIndex": 0
         },
         {
-          "location": {},
+          "location": {
+            "x": 1438,
+            "y": 395
+          },
           "nodeIndex": "Product B",
           "nodeLineageTag": "6b1e2c3d-4f5a-48b6-9c7d-8e9f0a1b2c3d",
           "size": {
@@ -131,10 +137,22 @@
             "width": 234
           },
           "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1722,
+            "y": 359
+          },
+          "nodeIndex": "Order Tiers",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
         }
       ],
       "name": "All tables",
-      "zoomValue": 100,
+      "zoomValue": 79.553182037699813,
       "pinKeyFieldsToTop": false,
       "showExtraHeaderInfo": false,
       "hideKeyFieldsWhenCollapsed": false,

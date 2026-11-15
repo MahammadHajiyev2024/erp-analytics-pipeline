@@ -3,8 +3,11 @@ table Currency
 
 	column Currency
 		lineageTag: 330d3d9d-fb1f-4d4f-ad5c-2edb275886d4
+		summarizeBy: none
 		isNameInferred
 		sourceColumn: [Currency]
+
+		annotation SummarizationSetBy = Automatic
 
 	partition Currency = calculated
 		mode: import

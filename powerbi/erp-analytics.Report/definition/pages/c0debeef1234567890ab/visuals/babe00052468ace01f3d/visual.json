@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "babe00052468ace01f3d",
   "position": {
-    "x": 650,
-    "y": 460,
-    "z": 4,
+    "x": 640.508678212972,
+    "y": 464.86090830114046,
+    "z": 2000,
     "height": 250,
     "width": 620,
-    "tabOrder": 4
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "barChart",
@@ -71,37 +71,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "babe01022468ace01f3d",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Net Revenue"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "babe01032468ace01f3d",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "dim_customer"
-              }
-            },
-            "Property": "segment"
-          }
-        },
-        "type": "Categorical"
-      }
-    ]
   }
 }

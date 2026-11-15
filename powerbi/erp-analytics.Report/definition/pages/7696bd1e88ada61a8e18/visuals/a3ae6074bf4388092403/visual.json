@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "a3ae6074bf4388092403",
   "position": {
-    "x": 650,
-    "y": 220,
-    "z": 3,
-    "height": 140,
-    "width": 620,
-    "tabOrder": 3
+    "x": 649.97506234413959,
+    "y": 227.13216957605985,
+    "z": 3000,
+    "height": 142.7431421446384,
+    "width": 620.34912718204487,
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "cardVisual",
@@ -52,23 +52,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "811265ce37c779e160e7",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Gross Profit"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

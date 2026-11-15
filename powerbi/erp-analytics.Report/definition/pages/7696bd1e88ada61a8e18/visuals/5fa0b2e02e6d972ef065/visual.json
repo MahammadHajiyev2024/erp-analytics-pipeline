@@ -4,10 +4,10 @@
   "position": {
     "x": 10,
     "y": 380,
-    "z": 4,
+    "z": 4000,
     "height": 310,
     "width": 1260,
-    "tabOrder": 4
+    "tabOrder": 4000
   },
   "visual": {
     "visualType": "tableEx",
@@ -83,51 +83,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "6a56a96f4960373f58ec",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "dim_customer"
-              }
-            },
-            "Property": "customer_name"
-          }
-        },
-        "type": "Categorical"
-      },
-      {
-        "name": "757693aeb4a297134faa",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_receivables"
-              }
-            },
-            "Property": "Accounts Receivable"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "052625d0083f46716cbe",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_receivables"
-              }
-            },
-            "Property": "Overdue %"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

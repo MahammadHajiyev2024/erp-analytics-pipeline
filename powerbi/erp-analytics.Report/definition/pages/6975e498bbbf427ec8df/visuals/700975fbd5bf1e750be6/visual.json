@@ -4,10 +4,10 @@
   "position": {
     "x": 10,
     "y": 70,
-    "z": 1,
+    "z": 1000,
     "height": 280,
     "width": 620,
-    "tabOrder": 1
+    "tabOrder": 1000
   },
   "visual": {
     "visualType": "tableEx",
@@ -83,51 +83,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "e777c2fafbb07b587369",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "dim_product"
-              }
-            },
-            "Property": "product_name"
-          }
-        },
-        "type": "Categorical"
-      },
-      {
-        "name": "d68c722651ed2429fb65",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_stock_movements"
-              }
-            },
-            "Property": "Stock On Hand"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "6232fbd8e47b06512c37",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_stock_movements"
-              }
-            },
-            "Property": "Days of Stock Cover"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }
