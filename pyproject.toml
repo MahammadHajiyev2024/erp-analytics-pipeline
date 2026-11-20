@@ -16,10 +16,15 @@ dependencies = [
 dev = [
     "actionlint-py>=1.7.12.25",
     "ipykernel>=7.4.0",
+    "nbconvert>=7.17.2",
     "pre-commit>=4.7.0",
     "pytest>=9.1.1",
     "ruff>=0.17.1",
     "sqlfluff>=4.4.0",
+]
+ml = [
+    "matplotlib>=3.11.2",
+    "scikit-learn>=1.9.1",
 ]
 
 
