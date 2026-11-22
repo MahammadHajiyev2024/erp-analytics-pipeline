@@ -25,6 +25,14 @@ so the whole environment can be rebuilt with one command.
 period is simulated. The sales history itself is real, anonymized data (UCI Online Retail II),
 with dates shifted forward; costs are simulated.*
 
+## About Maple
+
+Maple sells home décor and giftware: candle holders, kitchenware, Christmas decorations,
+party goods. It has no physical shops, just an online store. Most customers are small
+retailers and gift shops buying in bulk to resell, with a smaller number of individual buyers
+mixed in. Maple has over 5,900 customers in 43 countries, mostly in the UK and the rest of
+Europe. Sales peak every November, ahead of the holidays.
+
 ## Stakeholders, KPIs, and Scope
 
 The dashboards serve four stakeholders: the Managing Director, Sales Manager, Inventory Manager,
