@@ -1,0 +1,127 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "ee405f4f4007daf56d8e",
+  "position": {
+    "x": 9.8753117206982548,
+    "y": 73.615960099750623,
+    "z": 1000,
+    "height": 91.428571428571431,
+    "width": 1001.9047619047618,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_stock_movements"
+                    }
+                  },
+                  "Property": "Stock Value On Hand"
+                }
+              },
+              "queryRef": "fact_stock_movements.Stock Value On Hand",
+              "nativeQueryRef": "Stock Value On Hand"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_stock_movements"
+                    }
+                  },
+                  "Property": "Stock On Hand"
+                }
+              },
+              "queryRef": "fact_stock_movements.Stock On Hand",
+              "nativeQueryRef": "Stock On Hand"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_stock_movements"
+                    }
+                  },
+                  "Property": "Avg Days of Stock Cover"
+                }
+              },
+              "queryRef": "fact_stock_movements.Avg Days of Stock Cover",
+              "nativeQueryRef": "Avg Days of Stock Cover"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_stock_movements"
+                    }
+                  },
+                  "Property": "Slow-Moving Stock Value"
+                }
+              },
+              "queryRef": "fact_stock_movements.Slow-Moving Stock Value",
+              "nativeQueryRef": "Slow-Moving Stock Value"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales"
+                    }
+                  },
+                  "Property": "Total Units Sold"
+                }
+              },
+              "queryRef": "fact_sales.Total Units Sold",
+              "nativeQueryRef": "Units Sold",
+              "displayName": "Units Sold"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_sales"
+                    }
+                  },
+                  "Property": "Seasonal Index"
+                }
+              },
+              "queryRef": "fact_sales.Seasonal Index",
+              "nativeQueryRef": "Seasonal Index"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "fact_stock_movements"
+                  }
+                },
+                "Property": "Stock Value On Hand"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

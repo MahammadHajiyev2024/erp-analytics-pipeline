@@ -5,10 +5,14 @@ table fact_receivables
 			VAR _gbp = SUM(fact_receivables[outstanding_amount_gbp])
 			VAR _usd = SUM(fact_receivables[outstanding_amount_usd])
 			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
-		formatString: \$#,0.0;(\$#,0.0);\$#,0.0
 		lineageTag: a29bd1ab-e600-4c9b-a263-7d2f4b65de63
 
-		annotation PBI_FormatHint = {"currencyCulture":"en-US"}
+		formatStringDefinition =
+				SWITCH(
+				    SELECTEDVALUE('Currency'[Currency], "GBP"),
+				    "USD", "$#,0.0",
+				    "£#,0.0"
+				)
 
 	measure 'Overdue %' =
 			DIVIDE(
@@ -18,7 +22,7 @@ table fact_receivables
 		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 8ecb3fcc-7376-4ee1-8329-77fd14d66b56
 
-	measure 'Dynamic Order Volume' = ```
+	measure 'Dynamic Order Volume' =
 
 			VAR CurrentMin = MIN('Order Tiers'[Min])
 			VAR CurrentMax = MAX('Order Tiers'[Max])
@@ -37,9 +41,39 @@ table fact_receivables
 			        )
 			    )
 			)
-			```
-		formatString: 0
+		formatString: #,0.0
 		lineageTag: a92b51a1-c4fb-4ed0-ac63-4eb74e0eaf75
+
+	measure 'Order Count' = DISTINCTCOUNT(fact_receivables[invoice_id])
+		formatString: #,0.0
+		lineageTag: c90cc2a6-f4d5-4ce1-886c-b6afbaaa4613
+
+	measure 'Accounts Receivable by Tier' =
+
+			VAR CurrentMin = MIN('Order Tiers'[Min])
+			VAR CurrentMax = MAX('Order Tiers'[Max])
+			VAR SelectedCurrency = SELECTEDVALUE('Currency'[Currency], "GBP")
+			VAR _tierRows =
+					FILTER(
+					    fact_receivables,
+					    IF(
+					        SelectedCurrency = "USD",
+					        fact_receivables[invoice_amount_usd] >= CurrentMin && fact_receivables[invoice_amount_usd] < CurrentMax,
+					        fact_receivables[invoice_amount_gbp] >= CurrentMin && fact_receivables[invoice_amount_gbp] < CurrentMax
+					    )
+					)
+			VAR _gbp = CALCULATE(SUM(fact_receivables[outstanding_amount_gbp]), _tierRows)
+			VAR _usd = CALCULATE(SUM(fact_receivables[outstanding_amount_usd]), _tierRows)
+
+			RETURN SWITCH(SelectedCurrency, "USD", _usd, _gbp)
+		lineageTag: 5415404d-b03f-4c9b-b4b8-38969adcac7b
+
+		formatStringDefinition =
+				SWITCH(
+				    SELECTEDVALUE('Currency'[Currency], "GBP"),
+				    "USD", "$#,0.0",
+				    "£#,0.0"
+				)
 
 	column due_date_key
 		dataType: int64

@@ -1,0 +1,44 @@
+table _Measures
+	lineageTag: 59e2af83-ddcc-4cf5-bc53-54d6621eaf26
+
+	measure 'Active Filters Readout' =
+
+			// 1. Check if filtered. If yes, list values. If no, leave blank.
+			VAR _Year = IF(ISFILTERED('dim_date'[Year]), "Year: " & CONCATENATEX(VALUES('dim_date'[Year]), 'dim_date'[Year], ", ") & " | ", "")
+			VAR _Country = IF(ISFILTERED('dim_customer'[Country]), "Country: " & CONCATENATEX(VALUES('dim_customer'[Country]), 'dim_customer'[Country], ", ") & " | ", "")
+			VAR _Category = IF(ISFILTERED('dim_product'[Category]), "Category: " & CONCATENATEX(VALUES('dim_product'[Category]), 'dim_product'[Category], ", ") & " | ", "")
+			VAR _Segment = IF(ISFILTERED('dim_customer'[segment]), "Segment: " & CONCATENATEX(VALUES('dim_customer'[segment]), 'dim_customer'[segment], ", ") & " | ", "")
+
+			// 2. Combine all the active filters
+			VAR _Combined = _Year & _Segment & _Category & _Country
+
+			// 3. Trim the extra " | " from the very end of the string
+			VAR _CleanedText = LEFT(_Combined, LEN(_Combined) - 3)
+
+			// 4. Output final text
+			RETURN
+			IF(
+			    _Combined = "",
+			    "No filters applied",
+			     _CleanedText
+			)
+		lineageTag: 726f4a16-7649-43c2-a760-e03e75bac6c2
+
+	column Column1
+		dataType: string
+		lineageTag: 5aab8ba4-0f88-4c92-9b8b-e3259417d5f8
+		summarizeBy: none
+		sourceColumn: Column1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table

@@ -6,9 +6,19 @@ table Currency
 		summarizeBy: none
 		isNameInferred
 		sourceColumn: [Currency]
+		sortByColumn: 'Sort Order'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Sort Order'
+		formatString: 0
+		lineageTag: a7380b5f-1b8f-486a-ae3d-500fa70bc30a
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [Sort Order]
 
 		annotation SummarizationSetBy = Automatic
 
 	partition Currency = calculated
 		mode: import
-		source = DATATABLE("Currency", STRING, {{"GBP"}, {"USD"}})
+		source = DATATABLE("Currency", STRING, "Sort Order", INTEGER, {{"USD", 1}, {"GBP", 2}})

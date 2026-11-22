@@ -6,6 +6,7 @@ table fact_stock_movements
 					VALUES(dim_product[product_key]),
 					CALCULATE(LASTNONBLANKVALUE('dim_date'[date], SUM(fact_stock_movements[balance_quantity])))
 			)
+		formatString: #,0.0
 		lineageTag: ebb0d444-32d9-49f7-9fde-96631271d3b2
 
 	measure 'Days of Stock Cover' =
@@ -14,25 +15,56 @@ table fact_stock_movements
 			VAR _units30d = CALCULATE(SUM(fact_sales[quantity]), DATESINPERIOD('dim_date'[date], _lastSalesDate, -30, DAY))
 			VAR _avgDaily = DIVIDE(_units30d, 30)
 			RETURN DIVIDE([Stock On Hand], _avgDaily)
+		formatString: #,0.0
 		lineageTag: b5e67000-833f-4c65-bdc5-ed492f027877
 
 	measure 'Stock Value On Hand' =
-			SUMX(
-					VALUES(dim_product[product_key]),
-					CALCULATE(
-							SUMX(
-									FILTER(fact_stock_movements, fact_stock_movements[date_key] <= MAX('dim_date'[date_key])),
-									fact_stock_movements[value_change_gbp]
+			VAR _gbp =
+					SUMX(
+							VALUES(dim_product[product_key]),
+							CALCULATE(
+									SUMX(
+											FILTER(fact_stock_movements, fact_stock_movements[date_key] <= MAX('dim_date'[date_key])),
+											fact_stock_movements[value_change_gbp]
+									)
 							)
 					)
-			)
+			VAR _usd =
+					SUMX(
+							VALUES(dim_product[product_key]),
+							CALCULATE(
+									SUMX(
+											FILTER(fact_stock_movements, fact_stock_movements[date_key] <= MAX('dim_date'[date_key])),
+											fact_stock_movements[value_change_usd]
+									)
+							)
+					)
+			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
 		lineageTag: c9583586-28e8-4219-9759-bf6a91a9e50c
+
+		formatStringDefinition =
+				SWITCH(
+				    SELECTEDVALUE('Currency'[Currency], "GBP"),
+				    "USD", "$#,0.0",
+				    "£#,0.0"
+				)
 
 	measure 'Slow-Moving Stock Value' =
 			VAR _recentSellingProducts =
 					CALCULATETABLE(VALUES(fact_sales[product_key]), DATESINPERIOD('dim_date'[date], MAX('dim_date'[date]), -90, DAY))
 			RETURN CALCULATE([Stock Value On Hand], EXCEPT(VALUES(dim_product[product_key]), _recentSellingProducts))
 		lineageTag: f79252b7-7af6-4298-905e-757988d3c2b8
+
+		formatStringDefinition =
+				SWITCH(
+				    SELECTEDVALUE('Currency'[Currency], "GBP"),
+				    "USD", "$#,0.0",
+				    "£#,0.0"
+				)
+
+	measure 'Avg Days of Stock Cover' = AVERAGEX(VALUES(dim_product[product_key]), [Days of Stock Cover])
+		formatString: #,0.0
+		lineageTag: 3c8e9f1a-6b2d-4e7f-9a1c-5d8e2f4b7c90
 
 	column date_key
 		dataType: int64

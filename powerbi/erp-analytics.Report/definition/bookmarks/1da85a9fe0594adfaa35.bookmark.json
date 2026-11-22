@@ -1,0 +1,26 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Filter Open (Finance Report)",
+  "name": "1da85a9fe0594adfaa35",
+  "options": {
+    "targetVisualNames": [
+      "b70a91bf3a8732af9f98"
+    ],
+    "suppressData": true,
+    "preserveNewVisualVisibility": true
+  },
+  "explorationState": {
+    "version": "1.0",
+    "activeSection": "6fb4c2efe1f3e46f0ea5",
+    "sections": {
+      "6fb4c2efe1f3e46f0ea5": {
+        "visualContainers": {},
+        "visualContainerGroups": {
+          "b70a91bf3a8732af9f98": {
+            "isHidden": false
+          }
+        }
+      }
+    }
+  }
+}

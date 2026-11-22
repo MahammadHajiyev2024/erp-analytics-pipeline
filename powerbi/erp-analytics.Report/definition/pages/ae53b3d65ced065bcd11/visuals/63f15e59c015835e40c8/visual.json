@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "63f15e59c015835e40c8",
   "position": {
-    "x": 9.8753117206982548,
-    "y": 397.70573566084789,
-    "z": 4000,
-    "height": 302.54364089775561,
-    "width": 445.286783042394,
-    "tabOrder": 5000
+    "x": 9.6430493273542588,
+    "y": 433.93721973094171,
+    "z": 2000,
+    "height": 274.13811659192822,
+    "width": 494.55067264573989,
+    "tabOrder": 2000
   },
   "visual": {
     "visualType": "donutChart",
@@ -99,6 +99,20 @@
               "expr": {
                 "Literal": {
                   "Value": "'Category, percent of total'"
+                }
+              }
+            },
+            "position": {
+              "expr": {
+                "Literal": {
+                  "Value": "'outside'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
                 }
               }
             }
@@ -208,7 +222,34 @@
             "innerRadiusRatio": {
               "expr": {
                 "Literal": {
-                  "Value": "64L"
+                  "Value": "72L"
+                }
+              }
+            },
+            "startAngle": {
+              "expr": {
+                "Literal": {
+                  "Value": "321L"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "value": [
+        {
+          "properties": {
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "18D"
+                }
+              }
+            },
+            "textWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
                 }
               }
             }

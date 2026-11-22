@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "eeddf7fc6ff0367d5c18",
   "position": {
-    "x": 469.64028776978415,
-    "y": 397.8129496402878,
-    "z": 1000,
-    "height": 302.0431654676259,
-    "width": 800.23021582733816,
-    "tabOrder": 2000
+    "x": 513.83677130044839,
+    "y": 433.93721973094171,
+    "z": 0,
+    "height": 272.76053811659193,
+    "width": 756.29058295964126,
+    "tabOrder": 0
   },
   "visual": {
     "visualType": "barChart",
@@ -283,20 +283,6 @@
             }
           ]
         }
-      },
-      {
-        "name": "39fb17f4d51be641230a",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Net Revenue"
-          }
-        },
-        "type": "Advanced"
       }
     ]
   }
