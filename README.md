@@ -4,11 +4,11 @@
 
 End-to-end analytics pipeline: ERPNext REST API → Airflow → Databricks medallion lakehouse → dbt → Power BI.
 
-> **Status:** Work in progress. Phases 0 to 9 are complete: requirements, architecture, environment setup, continuous integration, the ERPNext source system, two years of verified historical data, a business activity simulator that keeps the company trading daily, a Databricks lakehouse, the extraction/bronze layer, and Airflow orchestration. Phase 10 is fully done: dbt's Silver layer (6 staging models) and Gold layer (4 dimensions, 4 facts — the constellation schema). Phase 11, Power BI reporting, is underway: the semantic model (10 relationships, 14 DAX measures, row-level security for two sales territories) and all 5 report pages (Overview, Managing Director, Sales Manager, Inventory Manager, Finance Manager) are built. Still to come: screenshots, a demo GIF, and Phase 12.
+> **Status:** Work in progress. Phases 0 to 9 are complete: requirements, architecture, environment setup, continuous integration, the ERPNext source system, two years of verified historical data, a business activity simulator that keeps the company trading daily, a Databricks lakehouse, the extraction/bronze layer, and Airflow orchestration. Phase 10 is fully done: dbt's Silver layer (6 staging models) and Gold layer (4 dimensions, 4 facts — the constellation schema). Phase 11, Power BI reporting, is underway: the semantic model (10 relationships, 14 DAX measures, row-level security for two sales territories) and all 5 report pages (Overview, Managing Director, Sales Manager, Inventory Manager, Finance Manager) are built, recently rebuilt with a standardized KPI-card layout and fixed cross-page filter-navigation bugs. Still to come: screenshots, a demo GIF, and Phase 12.
 
 ## Overview
 
-Maple Home & Gift Ltd is a UK-based online wholesaler of home décor and giftware. It's a
+Maple Home & Gift Ltd is a UK-based online wholesaler of home decor and giftware. It's a
 company I built for this project, based on a real UK online retailer whose anonymized
 transactions make up the UCI Online Retail II dataset. That sales history runs through a
 self-hosted ERPNext instance as Maple's books, enriched with macroeconomic data from the FRED
@@ -27,7 +27,7 @@ with dates shifted forward; costs are simulated.*
 
 ## About Maple
 
-Maple sells home décor and giftware: candle holders, kitchenware, Christmas decorations,
+Maple sells home decor and giftware: candle holders, kitchenware, Christmas decorations,
 party goods. It has no physical shops, just an online store. Most customers are small
 retailers and gift shops buying in bulk to resell, with a smaller number of individual buyers
 mixed in. Maple has over 5,900 customers in 43 countries, mostly in the UK and the rest of
