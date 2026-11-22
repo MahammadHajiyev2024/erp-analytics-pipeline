@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/bookmark/2.1.0/schema.json",
+  "displayName": "Filter Closed (Sales)",
+  "name": "2bf355686b13422aaa76",
+  "options": {
+    "targetVisualNames": [],
+    "suppressData": true,
+    "preserveNewVisualVisibility": true
+  },
+  "explorationState": {
+    "version": "1.0",
+    "activeSection": "f3e9993b9dfcae55a364",
+    "sections": {
+      "f3e9993b9dfcae55a364": {
+        "visualContainers": {},
+        "visualContainerGroups": {
+          "423bd7b0d046b453d3e9": {
+            "isHidden": true
+          }
+        }
+      }
+    }
+  }
+}

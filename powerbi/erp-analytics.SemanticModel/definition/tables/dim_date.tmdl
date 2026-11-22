@@ -1,8 +1,10 @@
 table dim_date
 	lineageTag: a95f106b-3558-4a17-97fe-bb15020c951f
+	dataCategory: Time
 
 	column date
 		dataType: dateTime
+		isKey
 		formatString: Long Date
 		sourceProviderType: date
 		lineageTag: bd7155a0-37c3-4d10-94b8-cee2a4f380b6
@@ -111,6 +113,25 @@ table dim_date
 
 		level Day
 			lineageTag: 5b6c7d8e-9f0a-41b2-3c4d-5e6f7a8b9c0d
+			column: date
+
+	hierarchy 'year Hierarchy'
+		lineageTag: 6913b40a-63cb-4e8d-aa7f-ea54626278c3
+
+		level year
+			lineageTag: afd19127-24ac-46bb-ab47-f705e3290fde
+			column: year
+
+		level quarter
+			lineageTag: 814b7b76-85ac-4815-9bd1-8dcb39bf057c
+			column: quarter
+
+		level month
+			lineageTag: 8ce287f3-c33b-42a2-924c-2ee37b5881f1
+			column: month
+
+		level date
+			lineageTag: f1cd234c-9292-4375-a852-78c6446639d9
 			column: date
 
 	partition dim_date = m

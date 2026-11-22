@@ -1,0 +1,30 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "f3e9993b9dfcae55a364",
+  "displayName": "Sales",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "d2b9b634a8306781c87e",
+      "target": "ca2d6fdeda4a64c0d2b6",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d2b9b634a8306781c87e",
+      "target": "b9b8f071fd02b341d14a",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f066cd976c0cde3d903b",
+      "target": "ca2d6fdeda4a64c0d2b6",
+      "type": "DataFilter"
+    },
+    {
+      "source": "f066cd976c0cde3d903b",
+      "target": "b9b8f071fd02b341d14a",
+      "type": "DataFilter"
+    }
+  ]
+}

@@ -40,7 +40,7 @@
           "expanded": {
             "expr": {
               "Literal": {
-                "Value": "true"
+                "Value": "false"
               }
             }
           }
@@ -64,6 +64,17 @@
           "type": "CustomTheme"
         }
       ]
+    },
+    {
+      "name": "RegisteredResources",
+      "type": "RegisteredResources",
+      "items": [
+        {
+          "name": "filter08692906675424605.png",
+          "path": "filter08692906675424605.png",
+          "type": "Image"
+        }
+      ]
     }
   ],
   "settings": {
@@ -72,6 +83,7 @@
     "defaultDrillFilterOtherVisuals": true,
     "allowChangeFilterTypes": true,
     "useEnhancedTooltips": true,
+    "filterPaneHiddenInEditMode": true,
     "useDefaultAggregateDisplayName": true
   }
 }

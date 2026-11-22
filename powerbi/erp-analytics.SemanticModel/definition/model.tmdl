@@ -8,7 +8,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["dim_customer","dim_date","dim_product","dim_supplier","fact_purchases","fact_sales","fact_receivables","fact_stock_movements"]
+annotation PBI_QueryOrder = ["dim_customer","dim_date","dim_product","dim_supplier","fact_purchases","fact_sales","fact_receivables","fact_stock_movements","_Measures"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
@@ -23,6 +23,7 @@ ref table fact_stock_movements
 ref table Currency
 ref table 'Product B'
 ref table 'Order Tiers'
+ref table _Measures
 
 ref role 'Sales Manager - France'
 ref role 'Sales Manager - UK'

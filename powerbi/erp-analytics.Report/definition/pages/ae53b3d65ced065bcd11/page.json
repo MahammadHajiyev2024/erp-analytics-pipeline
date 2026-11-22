@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
   "name": "ae53b3d65ced065bcd11",
-  "displayName": "Sales Manager",
+  "displayName": "Overview",
   "displayOption": "FitToPage",
   "height": 720,
   "width": 1280,
@@ -13,11 +13,16 @@
     },
     {
       "source": "d548e1eec3a80944a1c6",
-      "target": "ee7f04b0d0e86c99c70b",
+      "target": "eeddf7fc6ff0367d5c18",
       "type": "DataFilter"
     },
     {
-      "source": "d548e1eec3a80944a1c6",
+      "source": "e2da078081e7686e369c",
+      "target": "63f15e59c015835e40c8",
+      "type": "DataFilter"
+    },
+    {
+      "source": "e2da078081e7686e369c",
       "target": "eeddf7fc6ff0367d5c18",
       "type": "DataFilter"
     }

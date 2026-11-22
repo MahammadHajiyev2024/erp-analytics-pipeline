@@ -1,0 +1,30 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "6fb4c2efe1f3e46f0ea5",
+  "displayName": "Financial Report",
+  "displayOption": "FitToPage",
+  "height": 720,
+  "width": 1280,
+  "visualInteractions": [
+    {
+      "source": "c0cf2b4df4d3c75a458b",
+      "target": "97eda07f45bf3f5c4d9b",
+      "type": "DataFilter"
+    },
+    {
+      "source": "c0cf2b4df4d3c75a458b",
+      "target": "b82525f52ca1800c25b8",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d07e1c8e568b2877762a",
+      "target": "97eda07f45bf3f5c4d9b",
+      "type": "DataFilter"
+    },
+    {
+      "source": "d07e1c8e568b2877762a",
+      "target": "b82525f52ca1800c25b8",
+      "type": "DataFilter"
+    }
+  ]
+}

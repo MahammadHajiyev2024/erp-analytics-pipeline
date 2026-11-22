@@ -28,7 +28,7 @@ table fact_sales
 				)
 
 	measure 'Gross Margin %' = DIVIDE([Gross Profit], [Net Revenue])
-		formatString: #,0.00%;-#,0.00%;#,0.00%
+		formatString: #,0.0%;-#,0.0%;#,0.0%
 		lineageTag: 483af8ec-2925-4487-a638-14ced3b8c732
 
 	measure 'Average Order Value' = DIVIDE([Net Revenue], DISTINCTCOUNT(fact_sales[invoice_id]))
@@ -45,6 +45,7 @@ table fact_sales
 			VAR _returns = CALCULATE(SUM(fact_sales[net_amount_gbp]), fact_sales[is_return] = TRUE())
 			VAR _gross = CALCULATE(SUM(fact_sales[net_amount_gbp]), fact_sales[is_return] = FALSE())
 			RETURN DIVIDE(-1 * _returns, _gross)
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 4792f1e8-d290-4a2d-8bb2-ad61bf5e2e2d
 
 	measure 'Repeat Purchase Rate' =
@@ -55,14 +56,13 @@ table fact_sales
 		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 461a65df-2667-4314-b4a4-a14209987bdd
 
-	measure 'YoY Growth %' = ```
+	measure 'YoY Growth %' =
 
 			VAR _current = [Net Revenue]
 			VAR _prior = CALCULATE([Net Revenue], SAMEPERIODLASTYEAR('dim_date'[date]))
 
 			RETURN
 			DIVIDE(_current - _prior, _prior)
-			```
 		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: c7f4303e-9d20-4754-aecf-ccda31030d2b
 
@@ -74,6 +74,7 @@ table fact_sales
 							DATESINPERIOD('dim_date'[date], MAX('dim_date'[date]) - 90, -3, MONTH)
 					)
 			RETURN DIVIDE(_last3 - _prior3, _prior3)
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 266a5b55-c3cb-4d8b-ba7f-ed368925fade
 
 	measure 'Seasonal Index' =
@@ -89,6 +90,7 @@ table fact_sales
 					AVERAGEX(FILTER(_monthlyTotals, 'dim_date'[month] IN _monthsInContext), [MonthQty])
 			VAR _avgAllMonths = AVERAGEX(_monthlyTotals, [MonthQty])
 			RETURN DIVIDE(_avgForTheseMonths, _avgAllMonths)
+		formatString: 0.0
 		lineageTag: 56915676-8a3c-496b-91a0-1444b8874bdc
 
 	measure 'Product Pair Frequency' =
@@ -100,11 +102,20 @@ table fact_sales
 					TREATAS(_invoicesWithRowProduct, fact_sales[invoice_id]),
 					TREATAS({_productB}, dim_product[product_id])
 			)
+		formatString: #,0.0
 		lineageTag: 429accaa-2c96-4ed2-8d46-ab827497e239
 
 	measure 'Total Active Customers' = DISTINCTCOUNT(fact_sales[customer_key])
-		formatString: 0
+		formatString: #,0.0
 		lineageTag: 4f455bfa-d364-486e-aff1-90b3f5713e99
+
+	measure 'Total Orders' = DISTINCTCOUNT(fact_sales[invoice_id])
+		formatString: #,0.0
+		lineageTag: 8b1fad0c-65e3-46f9-a6a1-78e80789cf6f
+
+	measure 'Total Units Sold' = SUM(fact_sales[quantity])
+		formatString: #,0.0
+		lineageTag: 2806169a-bde0-43d4-86b3-2c0088b8a195
 
 	column date_key
 		dataType: int64

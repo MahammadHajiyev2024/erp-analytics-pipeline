@@ -2,12 +2,12 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "e8ada995a170e3e7bd3d",
   "position": {
-    "x": 9.9533437013996888,
-    "y": 70.6687402799378,
-    "z": 2000,
-    "height": 91.570762052877143,
-    "width": 989.36236391912917,
-    "tabOrder": 3000
+    "x": 9.8753117206982548,
+    "y": 73.615960099750623,
+    "z": 1000,
+    "height": 91.428571428571431,
+    "width": 1001.9047619047618,
+    "tabOrder": 1000
   },
   "visual": {
     "visualType": "cardVisual",
@@ -124,93 +124,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "97959fec89cd550e42e0",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Net Revenue"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "333df2c919891eb80a0a",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Average Order Value"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "f16060ce16320ddec1d6",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Total Active Customers"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "affd510442e7c45990d9",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Gross Margin %"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "78f88335730416c0146e",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "Gross Profit"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "4ac93de07e09d80d3946",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "fact_sales"
-              }
-            },
-            "Property": "YoY Growth %"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }
