@@ -10209,305 +10209,243 @@ cultureInfo en-US
 			          }
 			        }
 			      ]
+			    },
+			    "fact_receivable.days_sales_outstanding": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "fact_receivables",
+			          "ConceptualProperty": "Days Sales Outstanding"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "days sales outstanding": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "outstanding": {
+			            "State": "Generated",
+			            "Weight": 0.97
+			          }
+			        },
+			        {
+			          "sales outstanding": {
+			            "State": "Generated",
+			            "Weight": 0.97
+			          }
+			        },
+			        {
+			          "day sale outstanding": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.591
+			          }
+			        },
+			        {
+			          "sale outstanding": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.582
+			          }
+			        },
+			        {
+			          "remaining": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.476
+			          }
+			        },
+			        {
+			          "owing": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.476
+			          }
+			        },
+			        {
+			          "due": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.476
+			          }
+			        },
+			        {
+			          "dazzling": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.452
+			          }
+			        },
+			        {
+			          "great": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.452
+			          }
+			        },
+			        {
+			          "superior": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.452
+			          }
+			        }
+			      ]
+			    },
+			    "fact_receivable.country_share_of_total_AR": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "fact_receivables",
+			          "ConceptualProperty": "Country Share of Total AR"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "country share of total AR": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "nation share of total ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.624
+			          }
+			        },
+			        {
+			          "location share of total ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.624
+			          }
+			        },
+			        {
+			          "country share of aggregate ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.605
+			          }
+			        },
+			        {
+			          "country share of overall ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.605
+			          }
+			        },
+			        {
+			          "country part of total ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.504
+			          }
+			        },
+			        {
+			          "country portion of total ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.504
+			          }
+			        },
+			        {
+			          "country segment of total ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.504
+			          }
+			        },
+			        {
+			          "country cut of total ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.504
+			          }
+			        },
+			        {
+			          "country stake of total ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.504
+			          }
+			        },
+			        {
+			          "country bit of total ar": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.504
+			          }
+			        },
+			        {
+			          "% of Total AR": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    }
 			  },
 			  "Relationships": {
-			    "fact_stock_movement_has_dim_product": {
-			      "Binding": {
-			        "ConceptualEntity": "fact_stock_movements"
-			      },
-			      "State": "Generated",
-			      "Roles": {
-			        "fact_stock_movement": {
-			          "Target": {
-			            "Entity": "fact_stock_movement"
-			          }
-			        },
-			        "dim_product": {
-			          "Target": {
-			            "Entity": "dim_product"
-			          }
-			        }
-			      },
-			      "Phrasings": [
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "fact_stock_movement"
-			            },
-			            "Object": {
-			              "Role": "dim_product"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "fact_stock_movements_have_dim_products"
-			        },
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "dim_product"
-			            },
-			            "Object": {
-			              "Role": "fact_stock_movement"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "dim_products_have_fact_stock_movements"
-			        }
-			      ]
-			    },
-			    "fact_stock_movement_has_dim_date": {
-			      "Binding": {
-			        "ConceptualEntity": "fact_stock_movements"
-			      },
-			      "State": "Generated",
-			      "Roles": {
-			        "fact_stock_movement": {
-			          "Target": {
-			            "Entity": "fact_stock_movement"
-			          }
-			        },
-			        "dim_date": {
-			          "Target": {
-			            "Entity": "dim_date"
-			          }
-			        }
-			      },
-			      "Phrasings": [
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "fact_stock_movement"
-			            },
-			            "Object": {
-			              "Role": "dim_date"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "fact_stock_movements_have_dim_dates"
-			        },
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "dim_date"
-			            },
-			            "Object": {
-			              "Role": "fact_stock_movement"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "dim_dates_have_fact_stock_movements"
-			        }
-			      ]
-			    },
-			    "fact_receivable_has_dim_customer": {
-			      "Binding": {
-			        "ConceptualEntity": "fact_receivables"
-			      },
-			      "State": "Generated",
-			      "Roles": {
-			        "fact_receivable": {
-			          "Target": {
-			            "Entity": "fact_receivable"
-			          }
-			        },
-			        "dim_customer": {
-			          "Target": {
-			            "Entity": "dim_customer"
-			          }
-			        }
-			      },
-			      "Phrasings": [
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "fact_receivable"
-			            },
-			            "Object": {
-			              "Role": "dim_customer"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "fact_receivables_have_dim_customers"
-			        },
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "dim_customer"
-			            },
-			            "Object": {
-			              "Role": "fact_receivable"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "dim_customers_have_fact_receivables"
-			        }
-			      ]
-			    },
-			    "fact_receivable_has_dim_date": {
-			      "Binding": {
-			        "ConceptualEntity": "fact_receivables"
-			      },
-			      "State": "Generated",
-			      "Roles": {
-			        "fact_receivable": {
-			          "Target": {
-			            "Entity": "fact_receivable"
-			          }
-			        },
-			        "dim_date": {
-			          "Target": {
-			            "Entity": "dim_date"
-			          }
-			        }
-			      },
-			      "Phrasings": [
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "fact_receivable"
-			            },
-			            "Object": {
-			              "Role": "dim_date"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "fact_receivables_have_dim_dates"
-			        },
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "dim_date"
-			            },
-			            "Object": {
-			              "Role": "fact_receivable"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "dim_dates_have_fact_receivables"
-			        },
-			        {
-			          "Preposition": {
-			            "Subject": {
-			              "Role": "fact_receivable"
-			            },
-			            "Prepositions": [
-			              {
-			                "due": {
-			                  "State": "Generated"
-			                }
-			              }
-			            ],
-			            "Object": {
-			              "Role": "dim_date"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "fact_receivables_are_due_dim_dates"
-			        }
-			      ]
-			    },
-			    "fact_sale_has_dim_product": {
-			      "Binding": {
-			        "ConceptualEntity": "fact_sales"
-			      },
-			      "State": "Generated",
-			      "Roles": {
-			        "fact_sale": {
-			          "Target": {
-			            "Entity": "fact_sale"
-			          }
-			        },
-			        "dim_product": {
-			          "Target": {
-			            "Entity": "dim_product"
-			          }
-			        }
-			      },
-			      "Phrasings": [
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "fact_sale"
-			            },
-			            "Object": {
-			              "Role": "dim_product"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "fact_sales_have_dim_products"
-			        },
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "dim_product"
-			            },
-			            "Object": {
-			              "Role": "fact_sale"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "dim_products_have_fact_sales"
-			        }
-			      ]
-			    },
-			    "fact_sale_has_dim_customer": {
-			      "Binding": {
-			        "ConceptualEntity": "fact_sales"
-			      },
-			      "State": "Generated",
-			      "Roles": {
-			        "fact_sale": {
-			          "Target": {
-			            "Entity": "fact_sale"
-			          }
-			        },
-			        "dim_customer": {
-			          "Target": {
-			            "Entity": "dim_customer"
-			          }
-			        }
-			      },
-			      "Phrasings": [
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "fact_sale"
-			            },
-			            "Object": {
-			              "Role": "dim_customer"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "fact_sales_have_dim_customers"
-			        },
-			        {
-			          "Attribute": {
-			            "Subject": {
-			              "Role": "dim_customer"
-			            },
-			            "Object": {
-			              "Role": "fact_sale"
-			            }
-			          },
-			          "State": "Generated",
-			          "Weight": 0.99,
-			          "ID": "dim_customers_have_fact_sales"
-			        }
-			      ]
-			    },
 			    "fact_sale_has_dim_date": {
 			      "Binding": {
 			        "ConceptualEntity": "fact_sales"
@@ -10689,6 +10627,204 @@ cultureInfo en-US
 			          "State": "Generated",
 			          "Weight": 0.99,
 			          "ID": "dim_dates_have_fact_purchase"
+			        }
+			      ]
+			    },
+			    "fact_receivable_has_country_share_of_total_AR": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_receivables"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_receivable": {
+			          "Target": {
+			            "Entity": "fact_receivable"
+			          }
+			        },
+			        "fact_receivable.country_share_of_total_AR": {
+			          "Target": {
+			            "Entity": "fact_receivable.country_share_of_total_AR"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_receivable"
+			            },
+			            "Object": {
+			              "Role": "fact_receivable.country_share_of_total_AR"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_receivables_have_country_share_of_total_AR"
+			        }
+			      ]
+			    },
+			    "currency_has_fact_receivable_country_share_of_total_AR": {
+			      "Binding": {
+			        "ConceptualEntity": "Currency"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "currency": {
+			          "Target": {
+			            "Entity": "currency"
+			          }
+			        },
+			        "fact_receivable.country_share_of_total_AR": {
+			          "Target": {
+			            "Entity": "fact_receivable.country_share_of_total_AR"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "currency"
+			            },
+			            "Object": {
+			              "Role": "fact_receivable.country_share_of_total_AR"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "currencies_have_country_share_of_total_AR"
+			        }
+			      ]
+			    },
+			    "fact_sale_has_fact_receivable_days_sales_outstanding": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_sales"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_sale": {
+			          "Target": {
+			            "Entity": "fact_sale"
+			          }
+			        },
+			        "fact_receivable.days_sales_outstanding": {
+			          "Target": {
+			            "Entity": "fact_receivable.days_sales_outstanding"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_sale"
+			            },
+			            "Object": {
+			              "Role": "fact_receivable.days_sales_outstanding"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_sales_have_days_sales_outstanding"
+			        }
+			      ]
+			    },
+			    "fact_receivable_has_days_sales_outstanding": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_receivables"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_receivable": {
+			          "Target": {
+			            "Entity": "fact_receivable"
+			          }
+			        },
+			        "fact_receivable.days_sales_outstanding": {
+			          "Target": {
+			            "Entity": "fact_receivable.days_sales_outstanding"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_receivable"
+			            },
+			            "Object": {
+			              "Role": "fact_receivable.days_sales_outstanding"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_receivables_have_days_sales_outstanding"
+			        }
+			      ]
+			    },
+			    "dim_date_has_fact_receivable_days_sales_outstanding": {
+			      "Binding": {
+			        "ConceptualEntity": "dim_date"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "dim_date": {
+			          "Target": {
+			            "Entity": "dim_date"
+			          }
+			        },
+			        "fact_receivable.days_sales_outstanding": {
+			          "Target": {
+			            "Entity": "fact_receivable.days_sales_outstanding"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "dim_date"
+			            },
+			            "Object": {
+			              "Role": "fact_receivable.days_sales_outstanding"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "dim_dates_have_days_sales_outstanding"
+			        }
+			      ]
+			    },
+			    "currency_has_fact_receivable_days_sales_outstanding": {
+			      "Binding": {
+			        "ConceptualEntity": "Currency"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "currency": {
+			          "Target": {
+			            "Entity": "currency"
+			          }
+			        },
+			        "fact_receivable.days_sales_outstanding": {
+			          "Target": {
+			            "Entity": "fact_receivable.days_sales_outstanding"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "currency"
+			            },
+			            "Object": {
+			              "Role": "fact_receivable.days_sales_outstanding"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "currencies_have_days_sales_outstanding"
 			        }
 			      ]
 			    },
@@ -15043,6 +15179,302 @@ cultureInfo en-US
 			          "State": "Generated",
 			          "Weight": 0.99,
 			          "ID": "some_dim_customers_are_current_dim_customers"
+			        }
+			      ]
+			    },
+			    "fact_sale_has_dim_customer": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_sales"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_sale": {
+			          "Target": {
+			            "Entity": "fact_sale"
+			          }
+			        },
+			        "dim_customer": {
+			          "Target": {
+			            "Entity": "dim_customer"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_sale"
+			            },
+			            "Object": {
+			              "Role": "dim_customer"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_sales_have_dim_customers"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "dim_customer"
+			            },
+			            "Object": {
+			              "Role": "fact_sale"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "dim_customers_have_fact_sales"
+			        }
+			      ]
+			    },
+			    "fact_sale_has_dim_product": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_sales"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_sale": {
+			          "Target": {
+			            "Entity": "fact_sale"
+			          }
+			        },
+			        "dim_product": {
+			          "Target": {
+			            "Entity": "dim_product"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_sale"
+			            },
+			            "Object": {
+			              "Role": "dim_product"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_sales_have_dim_products"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "dim_product"
+			            },
+			            "Object": {
+			              "Role": "fact_sale"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "dim_products_have_fact_sales"
+			        }
+			      ]
+			    },
+			    "fact_receivable_has_dim_date": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_receivables"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_receivable": {
+			          "Target": {
+			            "Entity": "fact_receivable"
+			          }
+			        },
+			        "dim_date": {
+			          "Target": {
+			            "Entity": "dim_date"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_receivable"
+			            },
+			            "Object": {
+			              "Role": "dim_date"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_receivables_have_dim_dates"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "dim_date"
+			            },
+			            "Object": {
+			              "Role": "fact_receivable"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "dim_dates_have_fact_receivables"
+			        },
+			        {
+			          "Preposition": {
+			            "Subject": {
+			              "Role": "fact_receivable"
+			            },
+			            "Prepositions": [
+			              {
+			                "due": {
+			                  "State": "Generated"
+			                }
+			              }
+			            ],
+			            "Object": {
+			              "Role": "dim_date"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_receivables_are_due_dim_dates"
+			        }
+			      ]
+			    },
+			    "fact_receivable_has_dim_customer": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_receivables"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_receivable": {
+			          "Target": {
+			            "Entity": "fact_receivable"
+			          }
+			        },
+			        "dim_customer": {
+			          "Target": {
+			            "Entity": "dim_customer"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_receivable"
+			            },
+			            "Object": {
+			              "Role": "dim_customer"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_receivables_have_dim_customers"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "dim_customer"
+			            },
+			            "Object": {
+			              "Role": "fact_receivable"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "dim_customers_have_fact_receivables"
+			        }
+			      ]
+			    },
+			    "fact_stock_movement_has_dim_date": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_stock_movements"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_stock_movement": {
+			          "Target": {
+			            "Entity": "fact_stock_movement"
+			          }
+			        },
+			        "dim_date": {
+			          "Target": {
+			            "Entity": "dim_date"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_stock_movement"
+			            },
+			            "Object": {
+			              "Role": "dim_date"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_stock_movements_have_dim_dates"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "dim_date"
+			            },
+			            "Object": {
+			              "Role": "fact_stock_movement"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "dim_dates_have_fact_stock_movements"
+			        }
+			      ]
+			    },
+			    "fact_stock_movement_has_dim_product": {
+			      "Binding": {
+			        "ConceptualEntity": "fact_stock_movements"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_stock_movement": {
+			          "Target": {
+			            "Entity": "fact_stock_movement"
+			          }
+			        },
+			        "dim_product": {
+			          "Target": {
+			            "Entity": "dim_product"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "fact_stock_movement"
+			            },
+			            "Object": {
+			              "Role": "dim_product"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "fact_stock_movements_have_dim_products"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "dim_product"
+			            },
+			            "Object": {
+			              "Role": "fact_stock_movement"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "dim_products_have_fact_stock_movements"
 			        }
 			      ]
 			    },
