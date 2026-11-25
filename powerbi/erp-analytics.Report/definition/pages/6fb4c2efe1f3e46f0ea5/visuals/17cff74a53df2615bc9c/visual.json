@@ -62,14 +62,14 @@
                 "Measure": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "fact_sales"
+                      "Entity": "fact_receivables"
                     }
                   },
-                  "Property": "Return Rate %"
+                  "Property": "Days Sales Outstanding"
                 }
               },
-              "queryRef": "fact_sales.Return Rate %",
-              "nativeQueryRef": "Return Rate %"
+              "queryRef": "fact_receivables.Days Sales Outstanding",
+              "nativeQueryRef": "Days Sales Outstanding"
             },
             {
               "field": {
