@@ -1,19 +1,19 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.15.0/schema.json",
   "name": "d07e1c8e568b2877762a",
   "position": {
-    "x": 513.33333333333326,
-    "y": 179.04761904761904,
+    "x": 513.5162094763092,
+    "y": 179.55112219451371,
     "z": 5000,
-    "height": 239.04761904761904,
-    "width": 756.19047619047615,
+    "height": 238.80299251870323,
+    "width": 753.216957605985,
     "tabOrder": 5000
   },
   "visual": {
-    "visualType": "azureMap",
+    "visualType": "tableEx",
     "query": {
       "queryState": {
-        "Category": {
+        "Values": {
           "projections": [
             {
               "field": {
@@ -27,14 +27,9 @@
                 }
               },
               "queryRef": "dim_customer.country",
-              "nativeQueryRef": "Country",
-              "active": true,
-              "displayName": "Country"
-            }
-          ]
-        },
-        "Size": {
-          "projections": [
+              "nativeQueryRef": " ",
+              "displayName": " "
+            },
             {
               "field": {
                 "Measure": {
@@ -48,11 +43,22 @@
               },
               "queryRef": "fact_receivables.Accounts Receivable",
               "nativeQueryRef": "Accounts Receivable"
-            }
-          ]
-        },
-        "Tooltips": {
-          "projections": [
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_receivables"
+                    }
+                  },
+                  "Property": "Country Share of Total AR"
+                }
+              },
+              "queryRef": "fact_receivables.Country Share of Total AR",
+              "nativeQueryRef": "% of Total AR",
+              "displayName": "% of Total AR"
+            },
             {
               "field": {
                 "Measure": {
@@ -85,231 +91,125 @@
             },
             "direction": "Descending"
           }
-        ],
-        "isDefaultSort": true
+        ]
       }
     },
     "objects": {
-      "mapControls": [
+      "columnHeaders": [
         {
           "properties": {
-            "defaultStyle": {
+            "columnAdjustment": {
               "expr": {
                 "Literal": {
-                  "Value": "'night'"
+                  "Value": "'growToFit'"
                 }
               }
             },
-            "showStylePicker": {
+            "alignment": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "'Center'"
                 }
               }
             },
-            "showNavigationControls": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "showSelectionControl": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "zoom": {
-              "expr": {
-                "Literal": {
-                  "Value": "2.33D"
-                }
-              }
-            },
-            "centerLatitude": {
-              "expr": {
-                "Literal": {
-                  "Value": "49.55588840509474D"
-                }
-              }
-            },
-            "centerLongitude": {
-              "expr": {
-                "Literal": {
-                  "Value": "11.021983032870523D"
-                }
-              }
-            },
-            "autoZoom": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "showLabels": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "worldWrap": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "showRoadDetails": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "showBuildingFootprints": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "showAdminDistrictBorders": {
+            "wordWrap": {
               "expr": {
                 "Literal": {
                   "Value": "true"
-                }
-              }
-            },
-            "showCountryRegionBorders": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "showAdminDistrict2Borders": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "pitch": {
-              "expr": {
-                "Literal": {
-                  "Value": "4.488777501364083D"
                 }
               }
             }
           }
         }
       ],
-      "bubbleLayer": [
+      "grid": [
         {
           "properties": {
-            "show": {
+            "gridHorizontal": {
               "expr": {
                 "Literal": {
                   "Value": "true"
                 }
               }
             },
-            "bubbleRadius": {
-              "expr": {
-                "Literal": {
-                  "Value": "6L"
-                }
-              }
-            },
-            "minBubbleRadius": {
-              "expr": {
-                "Literal": {
-                  "Value": "3L"
-                }
-              }
-            },
-            "maxRadius": {
-              "expr": {
-                "Literal": {
-                  "Value": "14L"
-                }
-              }
-            },
-            "bubbleStrokeWidth": {
-              "expr": {
-                "Literal": {
-                  "Value": "1L"
-                }
-              }
-            },
-            "autoStrokeColor": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            },
-            "layerPosition": {
-              "expr": {
-                "Literal": {
-                  "Value": "''"
-                }
-              }
-            },
-            "mapTransparency": {
-              "expr": {
-                "Literal": {
-                  "Value": "20D"
-                }
-              }
-            },
-            "borderShow": {
+            "gridVertical": {
               "expr": {
                 "Literal": {
                   "Value": "true"
                 }
               }
             },
-            "strokeColor": {
+            "gridVerticalWeight": {
+              "expr": {
+                "Literal": {
+                  "Value": "1D"
+                }
+              }
+            },
+            "outlineColor": {
               "solid": {
                 "color": {
                   "expr": {
                     "ThemeDataColor": {
-                      "ColorId": 0,
-                      "Percent": -0.3
+                      "ColorId": 1,
+                      "Percent": 0.4
                     }
                   }
                 }
               }
             },
-            "pitchAlignment": {
+            "outlineWeight": {
               "expr": {
                 "Literal": {
-                  "Value": "'viewport'"
+                  "Value": "1D"
                 }
               }
             },
-            "rotationAlignment": {
+            "rowPadding": {
               "expr": {
                 "Literal": {
-                  "Value": "'viewport'"
+                  "Value": "4D"
                 }
               }
             }
           }
         }
       ],
-      "dataPoint": [
+      "total": [
         {
-          "properties": {}
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
         }
       ]
     },
     "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Accounts Receivable by Country'"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'center'"
+                }
+              }
+            }
+          }
+        }
+      ],
       "subTitle": [
         {
           "properties": {
@@ -322,88 +222,155 @@
             }
           }
         }
-      ],
-      "title": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "border": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            },
-            "radius": {
-              "expr": {
-                "Literal": {
-                  "Value": "8D"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "lockAspect": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "padding": [
-        {
-          "properties": {
-            "top": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
-                }
-              }
-            },
-            "left": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
-                }
-              }
-            },
-            "bottom": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
-                }
-              }
-            },
-            "right": {
-              "expr": {
-                "Literal": {
-                  "Value": "0D"
-                }
-              }
-            }
-          }
-        }
       ]
     },
     "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "c4f8a92de1b74c3f8a05",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "dim_customer"
+              }
+            },
+            "Property": "country"
+          }
+        },
+        "type": "TopN",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "subquery",
+              "Expression": {
+                "Subquery": {
+                  "Query": {
+                    "Version": 2,
+                    "From": [
+                      {
+                        "Name": "d",
+                        "Entity": "dim_customer",
+                        "Type": 0
+                      },
+                      {
+                        "Name": "f",
+                        "Entity": "fact_receivables",
+                        "Type": 0
+                      }
+                    ],
+                    "Select": [
+                      {
+                        "Column": {
+                          "Expression": {
+                            "SourceRef": {
+                              "Source": "d"
+                            }
+                          },
+                          "Property": "country"
+                        },
+                        "Name": "field"
+                      }
+                    ],
+                    "OrderBy": [
+                      {
+                        "Direction": 2,
+                        "Expression": {
+                          "Measure": {
+                            "Expression": {
+                              "SourceRef": {
+                                "Source": "f"
+                              }
+                            },
+                            "Property": "Accounts Receivable"
+                          }
+                        }
+                      }
+                    ],
+                    "Top": 5
+                  }
+                }
+              },
+              "Type": 2
+            },
+            {
+              "Name": "d",
+              "Entity": "dim_customer",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "d"
+                          }
+                        },
+                        "Property": "country"
+                      }
+                    }
+                  ],
+                  "Table": {
+                    "SourceRef": {
+                      "Source": "subquery"
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "name": "7d6155b76963eee16b77",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_receivables"
+              }
+            },
+            "Property": "Accounts Receivable"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "0c579e5125225899efcd",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_receivables"
+              }
+            },
+            "Property": "Country Share of Total AR"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "471704b3e6c4a05e3e15",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "fact_receivables"
+              }
+            },
+            "Property": "Overdue %"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
   }
 }
