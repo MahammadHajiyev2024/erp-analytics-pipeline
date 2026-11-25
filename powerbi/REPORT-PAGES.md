@@ -1,6 +1,6 @@
 # Report Pages
 
-Visual spec for the 5 report pages Task 7 builds in Power BI Desktop. Each page maps directly to
+Visual spec for the 4 report pages Task 7 builds in Power BI Desktop. Each page maps directly to
 one row of `docs/requirements.md`'s stakeholder table — no invented grouping, no chart that
 doesn't trace back to a defined KPI or key question (the spec's anti-goal).
 
@@ -27,27 +27,7 @@ still needs to be on the page if any other visual there is monetary.
 
 ---
 
-## 2. Management
-
-**Key questions (requirements.md):** How are revenue and profit trending, in GBP and USD? How
-does performance compare with last year? Which countries and customer segments contribute most?
-
-**Architecture:** same layout as Overview/Sales — a 6-card KPI strip, a line chart + map side by
-side, a donut + bar chart side by side, plus the same hidden filter pane (now page-scoped, see
-the Sales section's bookmark note) and currency toggle.
-
-| Visual | Fields | Notes |
-|---|---|---|
-| Currency slicer | `Currency[Currency]` | |
-| Cards | `Net Revenue`, `Gross Profit`, `Gross Margin %`, `YoY Growth %`, `Customer Revenue Change %`, `Total Active Customers` | Profit/growth-focused, deliberately not identical to Overview's card set |
-| Line chart | `Net Revenue` and `Gross Profit` together by `dim_date` `Calendar` hierarchy | Two-measure trend (legend on) — Overview only shows Net Revenue alone |
-| Map | `Net Revenue` by `dim_customer[country]` (size), `Customer Revenue Change %` (tooltip) | Geography still matters for an executive view; tooltip differs from Overview's |
-| Donut | `Gross Profit` by `dim_customer[segment]` | Profit mix by segment, not just revenue mix — differs from Overview's revenue-by-segment donut |
-| Bar chart | `Net Revenue` by `dim_customer[country]`, Top 5 filter | Which countries contribute most |
-
----
-
-## 3. Sales
+## 2. Sales
 
 > Superseded the original tables/matrix design below. Customers in the UCI Online Retail II
 > dataset are anonymized IDs with no real names, so a "top customers" table or chart isn't
@@ -73,7 +53,7 @@ tables/matrices).
 
 ---
 
-## 4. Inventory
+## 3. Inventory
 
 **Key questions (requirements.md):** Which products are close to running out? Which aren't
 selling and are tying up stock? How does demand change by season?
@@ -95,7 +75,7 @@ slicers in the filter pane (only category/Year do).
 
 ---
 
-## 5. Finance Report
+## 4. Finance Report
 
 **Key questions (requirements.md):** What is the gross margin by category? How much do returns
 cost? How much do customers owe, and how much is overdue?
@@ -122,9 +102,6 @@ problem as Sales' top-customers table, so it wasn't readable.
 
 | Stakeholder | Key question | Page / visual |
 |---|---|---|
-| Management | Revenue/profit trending, GBP/USD | Management — cards + line chart |
-| Management | vs. last year | Management — `YoY Growth %` card |
-| Management | Countries/segments contributing most | Management — map + bar chart, donut |
 | Sales | Order volume and size | Sales — `Total Orders` card, `Order Size Tier` bar chart |
 | Sales | Best-selling products | Sales — Top 10 products bar chart |
 | Sales | Reorder frequency / returns | Sales — `Repeat Purchase Rate`, `Return Rate %` cards |
@@ -139,11 +116,11 @@ problem as Sales' top-customers table, so it wasn't readable.
 
 | KPI (requirements.md) | Measure(s) | Page(s) |
 |---|---|---|
-| Net revenue / Net revenue (USD) | `Net Revenue` | Overview, Management, Finance Report |
-| Gross profit | `Gross Profit` | Overview, Management, Finance Report |
+| Net revenue / Net revenue (USD) | `Net Revenue` | Overview, Finance Report |
+| Gross profit | `Gross Profit` | Overview, Finance Report |
 | Gross margin % | `Gross Margin %` | Overview, Finance Report |
-| Year-over-year growth % | `YoY Growth %` | Overview, Management |
-| Customer revenue change % | `Customer Revenue Change %` | Management |
+| Year-over-year growth % | `YoY Growth %` | Overview |
+| Customer revenue change % | `Customer Revenue Change %` | None currently (measure retained; previously shown on Management, which was removed) |
 | Product pair frequency | `Product Pair Frequency` | None currently (measure retained; dropped from Sales to keep the card/chart layout) |
 | Average order value | `Average Order Value` | Sales |
 | Repeat purchase rate | `Repeat Purchase Rate` | Sales |
