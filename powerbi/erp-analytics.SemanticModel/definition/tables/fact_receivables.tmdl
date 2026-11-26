@@ -75,6 +75,14 @@ table fact_receivables
 				    "£#,0.0"
 				)
 
+	measure 'Days Sales Outstanding' = DIVIDE([Accounts Receivable], [Net Revenue]) * COUNTROWS(VALUES(dim_date[date]))
+		formatString: #,0.0
+		lineageTag: 6f0a7e21-4b9f-4f41-9d92-4e3e52b1c4af
+
+	measure 'Country Share of Total AR' = DIVIDE([Accounts Receivable], CALCULATE([Accounts Receivable], ALL(dim_customer[country])))
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 9c4d8b6f-2e1a-4a7c-8f05-3b6e9d2a7c41
+
 	column due_date_key
 		dataType: int64
 		formatString: 0

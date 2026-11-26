@@ -8,8 +8,9 @@ Every page that shows a monetary measure includes the `Currency[Currency]` slice
 monetary measure in this model toggles GBP/USD via that disconnected table (not a per-KPI
 decision). Non-monetary measures (`Gross Margin %`, `Return Rate %`, `Overdue %`, `YoY Growth %`,
 `Customer Revenue Change %`, `Repeat Purchase Rate`, `Days of Stock Cover`, `Seasonal Index`,
-`Product Pair Frequency`) are ratios/counts and aren't affected by the toggle, but the slicer
-still needs to be on the page if any other visual there is monetary.
+`Product Pair Frequency`, `Days Sales Outstanding`) are ratios/counts and aren't affected by the
+toggle (for `Days Sales Outstanding` the GBP/USD conversion cancels out in the division), but the
+slicer still needs to be on the page if any other visual there is monetary.
 
 ---
 
@@ -85,10 +86,10 @@ cost? How much do customers owe, and how much is overdue?
 | Visual | Fields | Notes |
 |---|---|---|
 | Currency slicer | `Currency[Currency]` | |
-| Cards | `Gross Profit`, `Gross Margin %`, `Return Rate %`, `Accounts Receivable`, `Overdue %`, `Net Revenue` | `Accounts Receivable`'s format string was fixed here — it used to hard-code a `$` sign regardless of the currency toggle even though the underlying value switched GBP/USD |
+| Cards | `Gross Profit`, `Gross Margin %`, `Days Sales Outstanding`, `Accounts Receivable`, `Overdue %`, `Net Revenue` | `Accounts Receivable`'s format string was fixed here — it used to hard-code a `$` sign regardless of the currency toggle even though the underlying value switched GBP/USD. `Return Rate %` was swapped out for `Days Sales Outstanding` — a finance page is the wrong home for a returns-frequency metric that already lives on Sales |
 | Line chart | `Gross Margin %` by `dim_date` `Calendar` hierarchy | Profitability trend — a new angle not shown on any other page |
-| Map | `Accounts Receivable` by `dim_customer[country]` (size), `Overdue %` (tooltip) | Collections risk concentration by region |
-| Donut | `Gross Profit` by `dim_product[category]` | Which categories are most profitable, not just which sell the most |
+| Table | `dim_customer[country]`, `Accounts Receivable`, `Country Share of Total AR` (new measure), `Overdue %`, Top 10 filter | Replaced a bubble map, then a ranked bar: the source dataset is so UK-dominated that both a map and a bar collapse to "one giant value, rest invisible" — a length-comparison visual can't show anything once one country's AR this thoroughly dominates. A table sidesteps the skew entirely: it's a lookup task (exact figures per country), not a magnitude-comparison task. `Country Share of Total AR` shows each country's share of the *whole* receivables book (via `ALL(dim_customer[country])`), not just its slice of the Top 10 shown |
+| Donut | `Gross Profit` by `dim_product[category]`, Top 5 filter | Originally all 11 categories (10 named + "Other"), which is past where a donut's color-and-label matching stays readable. Limiting to the Top 5 by Gross Profit fixes the legibility problem without abandoning the donut shape — also gives this page more visual variety against the two other table/bar visuals. Title says "Top 5" explicitly since the percent-of-total labels are relative to the Top 5's own sum, not the page-wide total |
 | Bar chart | `Accounts Receivable by Tier` (new measure) by `'Order Tiers'[Tier Name]` | How much is owed, broken down by invoice size — complements Sales' order-count-by-tier chart with a receivables-value view. Currency-aware like `Dynamic Order Volume` |
 
 **Dropped from the original design:** a per-customer AR/overdue table — same anonymized-ID
@@ -108,9 +109,9 @@ problem as Sales' top-customers table, so it wasn't readable.
 | Inventory | Close to running out | Inventory — `Days of Stock Cover` table |
 | Inventory | Not selling / tying up stock | Inventory — `Slow-Moving Stock Value` bar chart, `Stock Value On Hand` donut |
 | Inventory | Demand by season | Inventory — `Seasonal Index` card + line chart |
-| Finance Report | Gross margin by category | Finance Report — `Gross Margin %` line chart, `Gross Profit` donut |
-| Finance Report | Cost of returns | Finance Report — `Return Rate %` card |
-| Finance Report | Owed / overdue | Finance Report — `Accounts Receivable` card + map, `Accounts Receivable by Tier` bar chart |
+| Finance Report | Gross margin by category | Finance Report — `Gross Margin %` line chart, `Gross Profit` donut (Top 5) |
+| Finance Report | Cost of returns | Sales — `Return Rate %` card (not shown on Finance Report after this pass; it's a returns-frequency metric, not a currency cost, and fits Sales' theme better) |
+| Finance Report | Owed / overdue | Finance Report — `Accounts Receivable` card + table, `Accounts Receivable by Tier` bar chart |
 
 **Every one of the 14 KPIs from `requirements.md` appears on at least one page:**
 
@@ -127,14 +128,21 @@ problem as Sales' top-customers table, so it wasn't readable.
 | Days of stock cover | `Days of Stock Cover` | Inventory |
 | Slow-moving stock value | `Slow-Moving Stock Value` | Inventory |
 | Seasonal index | `Seasonal Index` | Inventory |
-| Return rate % | `Return Rate %` | Finance Report |
+| Return rate % | `Return Rate %` | Sales |
 | Accounts receivable and overdue % | `Accounts Receivable`, `Overdue %` | Overview, Finance Report |
 
 (`Stock On Hand` and `Stock Value On Hand` are internal helper measures feeding `Avg Days of
 Stock Cover`/`Days of Stock Cover` and `Slow-Moving Stock Value` respectively — not separate KPI
 rows in `requirements.md`, but shown directly as Inventory cards/visuals since they're
 self-explanatory alongside the measures they support. `Accounts Receivable by Tier` similarly
-extends `Accounts Receivable` rather than being a distinct `requirements.md` KPI.)
+extends `Accounts Receivable` rather than being a distinct `requirements.md` KPI. `Days Sales
+Outstanding` (`fact_receivables.tmdl`) is a later addition, also not one of the original 14 —
+added during the Financial Report/Inventory visual-refinement pass to replace `Return Rate %` on
+Finance Report's card row with a measure that actually fits a finance page's theme: average days
+to collect revenue, built from `Accounts Receivable` ÷ `Net Revenue` × days in the selected
+period, no dbt/gold changes needed. `Country Share of Total AR` (`fact_receivables.tmdl`) is
+another later addition from the same pass — each country's share of the whole receivables book,
+added as a 4th column on the AR-by-country table to use space the 3 original columns left empty.)
 
 ## Formatting convention
 
