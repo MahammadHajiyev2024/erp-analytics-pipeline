@@ -24,6 +24,264 @@ table _Measures
 			)
 		lineageTag: 726f4a16-7649-43c2-a760-e03e75bac6c2
 
+	measure 'Net Revenue YoY Label' =
+
+			VAR _Val = [YoY Growth %]
+			VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			RETURN
+			IF(NOT ISBLANK(_Val), "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+		lineageTag: 417691c0-15c3-43f5-86ec-109509be3ab8
+
+	measure 'Gross Profit YoY Label' =
+
+			VAR _Val = [Gross Profit YoY Growth %]
+			VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			RETURN
+			IF(NOT ISBLANK(_Val), "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+		lineageTag: 77cc5b43-61b3-40c3-9e76-32507670c261
+
+	measure 'Avg Order Value YoY Label' =
+
+			VAR _Val = [Average Order Value YoY Growth %]
+			VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			RETURN
+			IF(NOT ISBLANK(_Val), "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+		lineageTag: a5435de8-888f-4345-a121-42432cb21515
+
+	measure 'Active Customers YoY Label' =
+
+			VAR _Val = [Total Active Customers YoY Growth %]
+			VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			RETURN
+			IF(NOT ISBLANK(_Val), "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+		lineageTag: d0858d93-94f0-48ae-8080-f4a25975be32
+
+	measure 'Gross Margin % YoY Label' =
+
+			VAR _Val = ROUND([Gross Margin % YoY Change] * 100, 1)
+			VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			RETURN
+			IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0\p\p;-0.0\p\p;0.0\p\p"))
+		lineageTag: 30a6214b-d0a4-45c1-8f66-15c18f13626d
+
+	measure 'Net Revenue YoY Color' =
+
+			VAR _Val = [YoY Growth %]
+			RETURN
+			SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+		lineageTag: 66dbed5c-a30c-4644-b79d-eca898bdc23a
+
+	measure 'Gross Profit YoY Color' =
+
+			VAR _Val = [Gross Profit YoY Growth %]
+			RETURN
+			SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+		lineageTag: 46418b88-40de-454e-af9e-56664afa93da
+
+	measure 'Avg Order Value YoY Color' =
+
+			VAR _Val = [Average Order Value YoY Growth %]
+			RETURN
+			SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+		lineageTag: 8a641682-be85-4894-959d-d11aa6ba0e19
+
+	measure 'Active Customers YoY Color' =
+
+			VAR _Val = [Total Active Customers YoY Growth %]
+			RETURN
+			SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+		lineageTag: 8fbfd780-86ab-4e4a-b579-f935dc1bcb2f
+
+	measure 'Gross Margin YoY Color' =
+
+			VAR _Val = ROUND([Gross Margin % YoY Change] * 100, 1)
+			RETURN
+			SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+		lineageTag: 15798793-8460-48cd-90bc-339cfc32172a
+
+	measure 'Total Orders YoY Label' = ```
+
+			        VAR _Val = [Total Orders YoY Growth %]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+			```
+		lineageTag: 78728062-440f-4f9c-a9de-57ae1ff04121
+
+	measure 'Total Orders YoY Color' = ```
+
+			        VAR _Val = [Total Orders YoY Growth %]
+			        RETURN
+			        SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: d3dcbf71-49e5-40b9-89b5-2a6765ce355b
+
+	measure 'Repeat Purchase YoY Label' =
+
+			VAR _Val = ROUND([Repeat Purchase Rate YoY Change] * 100, 1)
+			VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			RETURN
+			IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0\p\p;-0.0\p\p;0.0\p\p"))
+		lineageTag: 63692c1c-eb78-43ae-bd3f-1e3448ca9e3f
+
+	measure 'Repeat Purchase YoY Color' =
+
+			VAR _Val = ROUND([Repeat Purchase Rate YoY Change] * 100, 1)
+			RETURN
+			SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+		lineageTag: 361d2f29-ae83-4caf-ae7c-aed8cb1141de
+
+	measure 'Return Rate YoY Label' =
+
+			VAR _Val = ROUND([Return Rate % YoY Change] * 100, 1)
+			VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			RETURN
+			IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0\p\p;-0.0\p\p;0.0\p\p"))
+		lineageTag: 184738e8-fa97-414c-bd40-c22eaffebfc8
+
+	measure 'Return Rate YoY Color' =
+
+			VAR _Val = ROUND([Return Rate % YoY Change] * 100, 1)
+			RETURN
+			SWITCH(TRUE(), _Val < 0, "#4ADE80", _Val > 0, "#F87171", "#A3A3A3")
+		lineageTag: 11256603-fd45-434e-b332-8aa4599f26b4
+
+	measure 'Units Sold YoY Label' = ```
+
+			        VAR _Val = [Total Units Sold YoY Growth %]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+			```
+		lineageTag: 5a6fa2c4-afdb-41f6-b258-6ed1a6248672
+
+	measure 'Units Sold YoY Color' = ```
+
+			        VAR _Val = [Total Units Sold YoY Growth %]
+			        RETURN
+			        SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: 8c55731c-0096-4112-ae2e-8e15709b9c89
+
+	measure 'Stock Value On Hand YoY Label' = ```
+
+			        VAR _Val = [Stock Value On Hand YoY Growth %]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+			```
+		lineageTag: b2cd740f-94be-4084-9318-311ddfc9aa63
+
+	measure 'Stock Value On Hand YoY Color' = ```
+
+			        VAR _Val = [Stock Value On Hand YoY Growth %]
+			        RETURN
+			        SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: 6c92a367-ff27-4d66-b4c9-d89c0242caf3
+
+	measure 'Stock On Hand YoY Label' = ```
+
+			        VAR _Val = [Stock On Hand YoY Growth %]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+			```
+		lineageTag: 468acca4-0cfd-453a-8e4d-bf055b1b9921
+
+	measure 'Stock On Hand YoY Color' = ```
+
+			        VAR _Val = [Stock On Hand YoY Growth %]
+			        RETURN
+			        SWITCH(TRUE(), _Val > 0, "#4ADE80", _Val < 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: 5f390c73-e712-4ab3-ba9f-f967e814f8c4
+
+	measure 'Avg Days of Stock Cover YoY Label' = ```
+
+			        VAR _Val = [Avg Days of Stock Cover YoY Growth %]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+			```
+		lineageTag: 75a18553-b2c9-4b2d-99f0-5337752ff5af
+
+	measure 'Avg Days of Stock Cover YoY Color' = ```
+
+			        VAR _Val = [Avg Days of Stock Cover YoY Growth %]
+			        RETURN
+			        SWITCH(TRUE(), _Val < 0, "#4ADE80", _Val > 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: 15da5e19-c8f2-49ba-8486-ebf7b5b906b8
+
+	measure 'Slow-Moving Stock Value YoY Label' = ```
+
+			        VAR _Val = [Slow-Moving Stock Value YoY Growth %]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+			```
+		lineageTag: 351ba933-7fcf-45da-bb13-768e29662088
+
+	measure 'Slow-Moving Stock Value YoY Color' = ```
+
+			        VAR _Val = [Slow-Moving Stock Value YoY Growth %]
+			        RETURN
+			        SWITCH(TRUE(), _Val < 0, "#4ADE80", _Val > 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: 61dd2269-ab25-43ba-93ca-d223dd30baeb
+
+	measure 'Days Sales Outstanding YoY Label' = ```
+
+			        VAR _Val = [Days Sales Outstanding YoY Growth %]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+			```
+		lineageTag: b58a9486-4535-402e-9075-7ff7a8f882c4
+
+	measure 'Days Sales Outstanding YoY Color' = ```
+
+			        VAR _Val = [Days Sales Outstanding YoY Growth %]
+			        RETURN
+			        SWITCH(TRUE(), _Val < 0, "#4ADE80", _Val > 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: 5bbfacdf-5536-4cbc-b1e3-eaa346a44d64
+
+	measure 'Accounts Receivable YoY Label' = ```
+
+			        VAR _Val = [Accounts Receivable YoY Growth %]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0%;-0.0%;0.0%"))
+			```
+		lineageTag: 10edd7ff-0463-454e-bd42-1b7b3f72952b
+
+	measure 'Accounts Receivable YoY Color' = ```
+
+			        VAR _Val = [Accounts Receivable YoY Growth %]
+			        RETURN
+			        SWITCH(TRUE(), _Val < 0, "#4ADE80", _Val > 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: 4b593c49-b251-4029-8abc-e9d1cb20b4d5
+
+	measure 'Overdue % YoY Label' = ```
+
+			        VAR _Val = [Overdue % YoY Change]
+			        VAR _Arrow = SWITCH(TRUE(), _Val > 0, "▲ ", _Val < 0, "▼ ", "")
+			        RETURN
+			        IF(ISBLANK(_Val), "YoY: N/A", "YoY: " & _Arrow & FORMAT(_Val, "+0.0\p\p;-0.0\p\p;0.0\p\p"))
+			```
+		lineageTag: a4488e0f-caf8-4214-bcac-03a686284e0a
+
+	measure 'Overdue % YoY Color' = ```
+
+			        VAR _Val = [Overdue % YoY Change]
+			        RETURN
+			        SWITCH(TRUE(), _Val < 0, "#4ADE80", _Val > 0, "#F87171", "#A3A3A3")
+			```
+		lineageTag: 1c2aa6a6-a635-40d7-883e-c0b5e11a31c8
+
 	column Column1
 		dataType: string
 		lineageTag: 5aab8ba4-0f88-4c92-9b8b-e3259417d5f8

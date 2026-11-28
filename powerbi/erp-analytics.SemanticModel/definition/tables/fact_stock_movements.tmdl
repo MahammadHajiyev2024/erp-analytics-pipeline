@@ -6,17 +6,29 @@ table fact_stock_movements
 					VALUES(dim_product[product_key]),
 					CALCULATE(LASTNONBLANKVALUE('dim_date'[date], SUM(fact_stock_movements[balance_quantity])))
 			)
-		formatString: #,0.0
+		formatString: #,0
 		lineageTag: ebb0d444-32d9-49f7-9fde-96631271d3b2
 
-	measure 'Days of Stock Cover' =
-			VAR _lastSalesDateKey = CALCULATE(MAX(fact_sales[date_key]), ALL(fact_sales))
-			VAR _lastSalesDate = CALCULATE(MAX('dim_date'[date]), 'dim_date'[date_key] = _lastSalesDateKey)
-			VAR _units30d = CALCULATE(SUM(fact_sales[quantity]), DATESINPERIOD('dim_date'[date], _lastSalesDate, -30, DAY))
+		annotation PBI_FormatHint = {"isDecimal":true}
+
+	measure 'Days of Stock Cover' = ```
+
+			VAR _lastSalesDateKey = MAX(fact_sales[date_key])
+			VAR _lastSalesDate = LOOKUPVALUE('dim_date'[date], 'dim_date'[date_key], _lastSalesDateKey)
+			VAR _units30d =
+			    CALCULATE(
+			        SUM(fact_sales[quantity]),
+			        REMOVEFILTERS('dim_date'),
+			        DATESINPERIOD('dim_date'[date], _lastSalesDate, -30, DAY)
+			    )
 			VAR _avgDaily = DIVIDE(_units30d, 30)
-			RETURN DIVIDE([Stock On Hand], _avgDaily)
-		formatString: #,0.0
+			RETURN
+			DIVIDE([Stock On Hand], _avgDaily)
+			```
+		formatString: #,0
 		lineageTag: b5e67000-833f-4c65-bdc5-ed492f027877
+
+		annotation PBI_FormatHint = {"isDecimal":true}
 
 	measure 'Stock Value On Hand' =
 			VAR _gbp =
@@ -65,6 +77,39 @@ table fact_stock_movements
 	measure 'Avg Days of Stock Cover' = AVERAGEX(VALUES(dim_product[product_key]), [Days of Stock Cover])
 		formatString: #,0.0
 		lineageTag: 3c8e9f1a-6b2d-4e7f-9a1c-5d8e2f4b7c90
+
+	measure 'Stock On Hand YoY Growth %' =
+			VAR _current = [Stock On Hand]
+			VAR _prior = CALCULATE([Stock On Hand], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: d120b9a4-cc96-471a-968c-e7f8b028e35c
+
+	measure 'Stock Value On Hand YoY Growth %' =
+			VAR _current = [Stock Value On Hand]
+			VAR _prior = CALCULATE([Stock Value On Hand], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: c272488a-3cc2-4c81-8a4f-12acc09f175c
+
+	measure 'Slow-Moving Stock Value YoY Growth %' =
+			VAR _current = [Slow-Moving Stock Value]
+			VAR _prior = CALCULATE([Slow-Moving Stock Value], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: ab8eeab2-3450-4083-a5a3-3ccc82eb043e
+
+	measure 'Avg Days of Stock Cover YoY Growth %' =
+
+			VAR _MaxDateKey = CALCULATE(MAX('fact_stock_movements'[date_key]), REMOVEFILTERS('dim_date'))
+			VAR _LatestYear = LOOKUPVALUE('dim_date'[year], 'dim_date'[date_key], _MaxDateKey)
+			VAR _TargetYear = COALESCE(SELECTEDVALUE('dim_date'[year]), _LatestYear)
+			VAR _Current = CALCULATE([Avg Days of Stock Cover], REMOVEFILTERS('dim_date'), 'dim_date'[year] = _TargetYear)
+			VAR _Prior = CALCULATE([Avg Days of Stock Cover], REMOVEFILTERS('dim_date'), 'dim_date'[year] = _TargetYear - 1)
+			RETURN
+			DIVIDE(_Current - _Prior, _Prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 588a846a-cb71-4f82-a767-7efcda409be0
 
 	column date_key
 		dataType: int64

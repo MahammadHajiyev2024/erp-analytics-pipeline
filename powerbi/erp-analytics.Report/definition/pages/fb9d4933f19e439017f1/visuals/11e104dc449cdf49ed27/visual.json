@@ -1,5 +1,5 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.15.0/schema.json",
   "name": "11e104dc449cdf49ed27",
   "position": {
     "x": 513.33333333333326,
@@ -38,6 +38,20 @@
                       "Entity": "fact_stock_movements"
                     }
                   },
+                  "Property": "Stock On Hand"
+                }
+              },
+              "queryRef": "fact_stock_movements.Stock On Hand",
+              "nativeQueryRef": "Stock On Hand"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_stock_movements"
+                    }
+                  },
                   "Property": "Days of Stock Cover"
                 }
               },
@@ -51,19 +65,18 @@
         "sort": [
           {
             "field": {
-              "Measure": {
+              "Column": {
                 "Expression": {
                   "SourceRef": {
-                    "Entity": "fact_stock_movements"
+                    "Entity": "dim_product"
                   }
                 },
-                "Property": "Days of Stock Cover"
+                "Property": "product_name"
               }
             },
-            "direction": "Ascending"
+            "direction": "Descending"
           }
-        ],
-        "isDefaultSort": true
+        ]
       }
     },
     "objects": {
@@ -73,7 +86,7 @@
             "value": {
               "expr": {
                 "Literal": {
-                  "Value": "460D"
+                  "Value": "377.00289199998286D"
                 }
               }
             }
@@ -85,7 +98,50 @@
       ],
       "columnHeaders": [
         {
-          "properties": {}
+          "properties": {
+            "columnAdjustment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'growToFit'"
+                }
+              }
+            },
+            "alignment": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Center'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnFormatting": [
+        {
+          "properties": {},
+          "selector": {
+            "metadata": "fact_stock_movements.Days of Stock Cover"
+          }
+        }
+      ],
+      "grid": [
+        {
+          "properties": {
+            "gridHorizontal": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "gridVertical": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
         }
       ]
     },
