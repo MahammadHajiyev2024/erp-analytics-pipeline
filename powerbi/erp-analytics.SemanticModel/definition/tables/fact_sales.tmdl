@@ -117,6 +117,62 @@ table fact_sales
 		formatString: #,0.0
 		lineageTag: 2806169a-bde0-43d4-86b3-2c0088b8a195
 
+	measure 'Gross Profit YoY Growth %' =
+			VAR _current = [Gross Profit]
+			VAR _prior = CALCULATE([Gross Profit], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 6b43cfb0-59f6-4ddf-9fc0-459f6d5e66fe
+
+	measure 'Gross Margin % YoY Change' =
+			VAR _current = [Gross Margin %]
+			VAR _prior = CALCULATE([Gross Margin %], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN _current - _prior
+		formatString: +0.0"pp";-0.0"pp";0.0"pp"
+		lineageTag: fc5dc022-2e3d-46e4-849b-1e6092753699
+
+	measure 'Average Order Value YoY Growth %' =
+			VAR _current = [Average Order Value]
+			VAR _prior = CALCULATE([Average Order Value], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 1e273169-349a-4f04-b67b-53b87e1e0d5d
+
+	measure 'Return Rate % YoY Change' =
+			VAR _current = [Return Rate %]
+			VAR _prior = CALCULATE([Return Rate %], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN _current - _prior
+		formatString: +0.0"pp";-0.0"pp";0.0"pp"
+		lineageTag: 245a1e3f-16ce-4e51-8505-2ee8591c579f
+
+	measure 'Repeat Purchase Rate YoY Change' =
+			VAR _current = [Repeat Purchase Rate]
+			VAR _prior = CALCULATE([Repeat Purchase Rate], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN _current - _prior
+		formatString: +0.0"pp";-0.0"pp";0.0"pp"
+		lineageTag: 87a4d5b9-6549-400c-b3cc-cede4393c688
+
+	measure 'Total Active Customers YoY Growth %' =
+			VAR _current = [Total Active Customers]
+			VAR _prior = CALCULATE([Total Active Customers], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: bd852774-de3e-4397-bff8-7a80295fff43
+
+	measure 'Total Orders YoY Growth %' =
+			VAR _current = [Total Orders]
+			VAR _prior = CALCULATE([Total Orders], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 0c4568f7-0bfc-4721-8600-c68b44c4b3a8
+
+	measure 'Total Units Sold YoY Growth %' =
+			VAR _current = [Total Units Sold]
+			VAR _prior = CALCULATE([Total Units Sold], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 273a0d37-e79f-4247-bf7d-78f598bda134
+
 	column date_key
 		dataType: int64
 		formatString: 0

@@ -2,9 +2,11 @@ table fact_receivables
 	lineageTag: c8b894a4-ac56-4a10-bb0a-0b359f34605f
 
 	measure 'Accounts Receivable' =
+
 			VAR _gbp = SUM(fact_receivables[outstanding_amount_gbp])
-			VAR _usd = SUM(fact_receivables[outstanding_amount_usd])
-			RETURN SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
+			VAR _usd = SUMX(fact_receivables, fact_receivables[outstanding_amount_gbp] * RELATED('dim_date'[usd_per_gbp]))
+			RETURN
+			SWITCH(SELECTEDVALUE('Currency'[Currency], "GBP"), "USD", _usd, _gbp)
 		lineageTag: a29bd1ab-e600-4c9b-a263-7d2f4b65de63
 
 		formatStringDefinition =
@@ -82,6 +84,29 @@ table fact_receivables
 	measure 'Country Share of Total AR' = DIVIDE([Accounts Receivable], CALCULATE([Accounts Receivable], ALL(dim_customer[country])))
 		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 9c4d8b6f-2e1a-4a7c-8f05-3b6e9d2a7c41
+
+	measure 'Accounts Receivable YoY Growth %' =
+			VAR _current = [Accounts Receivable]
+			VAR _prior = CALCULATE([Accounts Receivable], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: bd0f43c1-ab20-4187-b992-290f870c366d
+
+	measure 'Overdue % YoY Change' =
+
+			VAR _current = [Overdue %]
+			VAR _prior = CALCULATE([Overdue %], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN
+			IF(ISBLANK(_prior), BLANK(), _current - _prior)
+		formatString: +0.0"pp";-0.0"pp";0.0"pp"
+		lineageTag: 405e93d2-5a84-4636-a713-a53428780b1b
+
+	measure 'Days Sales Outstanding YoY Growth %' =
+			VAR _current = [Days Sales Outstanding]
+			VAR _prior = CALCULATE([Days Sales Outstanding], SAMEPERIODLASTYEAR('dim_date'[date]))
+			RETURN DIVIDE(_current - _prior, _prior)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 88bdea4a-2552-4e7b-8276-4a7576c58789
 
 	column due_date_key
 		dataType: int64
