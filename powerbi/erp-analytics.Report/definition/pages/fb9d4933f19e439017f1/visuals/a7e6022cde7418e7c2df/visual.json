@@ -10,50 +10,25 @@
     "tabOrder": 3000
   },
   "visual": {
-    "visualType": "lineChart",
+    "visualType": "columnChart",
     "query": {
       "queryState": {
         "Category": {
           "projections": [
             {
               "field": {
-                "HierarchyLevel": {
+                "Column": {
                   "Expression": {
-                    "Hierarchy": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "dim_date"
-                        }
-                      },
-                      "Hierarchy": "Calendar"
+                    "SourceRef": {
+                      "Entity": "dim_date"
                     }
                   },
-                  "Level": "Month"
+                  "Property": "month_name"
                 }
               },
-              "queryRef": "dim_date.Calendar.Month",
-              "nativeQueryRef": "Calendar Month",
+              "queryRef": "dim_date.month_name",
+              "nativeQueryRef": "month_name",
               "active": true
-            },
-            {
-              "field": {
-                "HierarchyLevel": {
-                  "Expression": {
-                    "Hierarchy": {
-                      "Expression": {
-                        "SourceRef": {
-                          "Entity": "dim_date"
-                        }
-                      },
-                      "Hierarchy": "Calendar"
-                    }
-                  },
-                  "Level": "Day"
-                }
-              },
-              "queryRef": "dim_date.Calendar.Day",
-              "nativeQueryRef": "Calendar Day",
-              "active": false
             }
           ]
         },
@@ -191,19 +166,6 @@
         {
           "properties": {
             "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "lineStyles": [
-        {
-          "properties": {
-            "areaShow": {
               "expr": {
                 "Literal": {
                   "Value": "false"
