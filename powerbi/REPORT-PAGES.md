@@ -12,6 +12,14 @@ decision). Non-monetary measures (`Gross Margin %`, `Return Rate %`, `Overdue %`
 toggle (for `Days Sales Outstanding` the GBP/USD conversion cancels out in the division), but the
 slicer still needs to be on the page if any other visual there is monetary.
 
+Every KPI card on every page carries a year-over-year comparison as a reference label under its
+value (e.g. "YoY: ▲ +12.3%"), driven by a `'<Metric> YoY Label'` / `'<Metric> YoY Color'` measure
+pair in the `_Measures` table — the label text bakes in the ▲/▼ arrow and the color measure
+returns a hex string (green/red/neutral) for the label's font color, inverted for metrics where a
+decrease is the good direction (`Return Rate %`, `Days Sales Outstanding`, `Overdue %`, `Avg Days
+of Stock Cover`, `Slow-Moving Stock Value`, `Accounts Receivable`). `Seasonal Index` and `YoY
+Growth %` itself are excluded — both are described in their own page sections below.
+
 ---
 
 ## 1. Overview
@@ -69,9 +77,9 @@ slicers in the filter pane (only category/Year do).
 |---|---|---|
 | Currency slicer | `Currency[Currency]` | Affects `Stock Value On Hand` and `Slow-Moving Stock Value` only |
 | Cards | `Stock Value On Hand`, `Stock On Hand`, `Avg Days of Stock Cover`, `Slow-Moving Stock Value`, `Total Units Sold`, `Seasonal Index` | `Avg Days of Stock Cover` is new: `AVERAGEX` over products, blanks (zero-sales products) excluded automatically |
-| Line chart | `Seasonal Index` by `dim_date` `Calendar` hierarchy | Demand trend over time, same slot as other pages' line chart |
-| Table | `dim_product[product_name]`, `Days of Stock Cover`, ascending, Top 15 | Products closest to running out surface first. A known zero-sales product will show blank — expected, not an error |
-| Donut | `Stock Value On Hand` by `dim_product[category]` | Which categories tie up the most inventory value |
+| Column chart | `Seasonal Index` by `dim_date[month_name]` | Was a line chart against the full Year→Quarter→Month hierarchy, which repeated the same 12-point shape every year since `Seasonal Index` is deliberately year-independent (`ALL('dim_date')`, filtered only on month) — that read as a sawtooth "trend" that wasn't one. Plotting the plain `month_name` column instead (already sorted Jan→Dec via `sortByColumn: month`, no year baked in) as a column chart shows the real 12-bar seasonal profile |
+| Table | `dim_product[product_name]`, `Stock On Hand`, `Days of Stock Cover`, descending by `Stock On Hand`, Top 15 | `Stock On Hand` shows whether a low/high days-of-cover figure is driven by quantity or by turnover, filling the panel's leftover width with real information rather than just widening columns. A known zero-sales product will show blank — expected, not an error. Kept as a table rather than converted to a bar chart (table reads more precisely for "hundreds of products," and the page already has one bar chart) |
+| Donut | `Stock Value On Hand` by `dim_product[category]`, Top 5 filter | Same fix as Financial Report's Gross Profit donut: 11 categories was past where a donut reads cleanly, so it's limited to the Top 5 by `Stock Value On Hand`. Title says "Top 5" explicitly since the percent-of-total labels are relative to the Top 5's own sum, not the page-wide total |
 | Bar chart | `Slow-Moving Stock Value` by `dim_product[product_name]`, Top 10 filter | Which specific products are the worst dead-stock offenders |
 
 ---
@@ -108,7 +116,7 @@ problem as Sales' top-customers table, so it wasn't readable.
 | Sales | Reorder frequency / returns | Sales — `Repeat Purchase Rate`, `Return Rate %` cards |
 | Inventory | Close to running out | Inventory — `Days of Stock Cover` table |
 | Inventory | Not selling / tying up stock | Inventory — `Slow-Moving Stock Value` bar chart, `Stock Value On Hand` donut |
-| Inventory | Demand by season | Inventory — `Seasonal Index` card + line chart |
+| Inventory | Demand by season | Inventory — `Seasonal Index` card + column chart |
 | Finance Report | Gross margin by category | Finance Report — `Gross Margin %` line chart, `Gross Profit` donut (Top 5) |
 | Finance Report | Cost of returns | Sales — `Return Rate %` card (not shown on Finance Report after this pass; it's a returns-frequency metric, not a currency cost, and fits Sales' theme better) |
 | Finance Report | Owed / overdue | Finance Report — `Accounts Receivable` card + table, `Accounts Receivable by Tier` bar chart |
