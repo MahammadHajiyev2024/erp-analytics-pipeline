@@ -1,13 +1,13 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.15.0/schema.json",
   "name": "5e11fe9f98ab4db49f33",
   "position": {
-    "x": 60,
-    "y": 140,
-    "z": 1100,
-    "height": 80,
-    "width": 1800,
-    "tabOrder": 1100
+    "x": 40.399002493765586,
+    "y": 69.127182044887775,
+    "z": 1000,
+    "height": 77.206982543640891,
+    "width": 1199.4014962593517,
+    "tabOrder": 1000
   },
   "visual": {
     "visualType": "textbox",
@@ -21,8 +21,8 @@
                   {
                     "value": "Maple Home & Gift Ltd",
                     "textStyle": {
-                      "fontSize": "36pt",
-                      "fontWeight": "bold"
+                      "fontWeight": "bold",
+                      "fontSize": "36pt"
                     }
                   }
                 ],
